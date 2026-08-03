@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@main
     - name: Build
       run: |
         mkdir build
@@ -19,7 +19,7 @@ jobs:
         rm -rf build/usr/themes/classic-22/static/scss
         cd build && zip -q -r typecho.zip * && mv typecho.zip ../ && cd -
     - name: Upload Release Asset
-      uses: shogo82148/actions-upload-release-asset@v1
+      uses: shogo82148/actions-upload-release-asset@main
       with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./typecho.zip

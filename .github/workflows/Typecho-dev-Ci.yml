@@ -19,9 +19,9 @@ jobs:
         php: ['7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5']
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@main
     - name: Setup PHP only
-      uses: shivammathur/setup-php@v2
+      uses: shivammathur/setup-php@main
       with:
         php-version: ${{ matrix.php }}
     - name: Test
@@ -35,7 +35,7 @@ jobs:
         - php
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@main
     - name: Build
       run: |
         mkdir build
@@ -46,7 +46,7 @@ jobs:
         rm -rf build/usr/themes/classic-22/static/scss
         cd build && zip -q -r typecho.zip * && mv typecho.zip ../ && cd -
     - name: Upload a Build Artifact
-      uses: WebFreak001/deploy-nightly@v1.1.0
+      uses: WebFreak001/deploy-nightly@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
