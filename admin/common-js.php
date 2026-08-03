@@ -20,7 +20,7 @@
                 if (!!cookies.notice && 'success|notice|error'.indexOf(cookies.noticeType) >= 0) {
                     var head = $('.typecho-head-nav'),
                         p = $('<div class="message popup ' + cookies.noticeType + '">'
-                        + '<ul><li>' + $.parseJSON(cookies.notice).join('</li><li>') 
+                        + '<ul><li>' + JSON.parse(cookies.notice).join('</li><li>') 
                         + '</li></ul></div>'), offset = 0;
 
                     if (head.length > 0) {

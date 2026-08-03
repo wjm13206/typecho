@@ -31,7 +31,7 @@ $(document).ready(function() {
 
     updateAttachmentNumber();
 
-    const uploadUrl = $('.upload-area').bind({
+    const uploadUrl = $('.upload-area').on({
         dragenter   :   function (e) {
             $(this).parent().addClass('drag');
         },
