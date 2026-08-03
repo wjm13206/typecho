@@ -30,7 +30,7 @@ jobs:
   build:
     name: Typecho Build
     runs-on: ubuntu-latest
-    if: ${{ !contains(github.event.head_commit.message, 'skip ci') && github.event_name != 'pull_request' && github.repository == 'typecho/typecho' }}
+    if: ${{ !contains(github.event.head_commit.message, 'skip ci') && github.event_name != 'pull_request' && github.repository == 'wjm13206/typecho' }}
     needs:
         - php
     steps:
@@ -50,7 +50,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: https://uploads.github.com/repos/typecho/typecho/releases/49532662/assets{?name,label}
+        upload_url: https://uploads.github.com/repos/wjm13206/typecho/releases/49532662/assets{?name,label}
         release_id: 49532662
         asset_path: ./typecho.zip
         asset_name: typecho.zip
