@@ -22,12 +22,9 @@ jobs:
         rm -rf build/usr/themes/classic-22/static/scss
         cd build && zip -q -r typecho.zip * && mv typecho.zip ../ && cd -
     - name: Upload Release Asset
-      uses: shogo82148/actions-upload-release-asset@main
-      with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./typecho.zip
-          asset_name: typecho.zip
-          asset_content_type: application/zip
+      run: gh release upload "${{ github.event.release.tag_name }}" ./typecho.zip --clobber
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Trigger language build
       run: |
         curl -XPOST -H "Authorization: token ${{ secrets.WORKFLOW_TOKEN }}" \

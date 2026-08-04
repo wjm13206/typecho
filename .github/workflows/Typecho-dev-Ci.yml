@@ -49,12 +49,8 @@ jobs:
         rm -rf build/usr/themes/classic-22/static/scss
         cd build && zip -q -r typecho.zip * && mv typecho.zip ../ && cd -
     - name: Upload a Build Artifact
-      uses: WebFreak001/deploy-nightly@master
-      with:
-        upload_url: https://uploads.github.com/repos/wjm13206/typecho/releases/365080590/assets{?name,label}
-        release_id: 365080590
-        asset_path: ./typecho.zip
-        asset_name: typecho.zip
-        asset_content_type: application/zip
-        max_releases: 1
-        token: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        TAG=$(gh api repos/${{ github.repository }}/releases/365080590 --jq '.tag_name')
+        gh release upload "$TAG" ./typecho.zip --clobber
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
