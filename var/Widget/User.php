@@ -6,7 +6,6 @@ use Typecho\Common;
 use Typecho\Cookie;
 use Typecho\Db\Exception as DbException;
 use Typecho\Widget;
-use Utils\PasswordHash;
 use Widget\Base\Users;
 
 if (!defined('__TYPECHO_ROOT_DIR__')) {
@@ -169,12 +168,7 @@ class User extends Users
 
         $hashValidate = self::pluginHandle()->trigger($hashPluggable)->call('hashValidate', $password, $user['password']);
         if (!$hashPluggable) {
-            if ('$P$' == substr($user['password'], 0, 3)) {
-                $hasher = new PasswordHash(8, true);
-                $hashValidate = $hasher->checkPassword($password, $user['password']);
-            } else {
-                $hashValidate = Common::hashValidate($password, $user['password']);
-            }
+            $hashValidate = Common::hashValidate($password, $user['password']);
         }
 
         if ($hashValidate) {

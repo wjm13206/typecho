@@ -71,7 +71,6 @@ class Init extends Widget
             'Widget_Interface_Do'         => '\Widget\ActionInterface',
             'Widget_Do'                   => '\Widget\Action',
             'AutoP'                       => '\Utils\AutoP',
-            'PasswordHash'                => '\Utils\PasswordHash',
             'Markdown'                    => '\Utils\Markdown',
             'HyperDown'                   => '\Utils\HyperDown',
             'Helper'                      => '\Utils\Helper',
