@@ -21,40 +21,34 @@ if (!defined('__TYPECHO_ROOT_DIR__')) {
 class Upgrade extends BaseOptions implements ActionInterface
 {
     /**
-     * minimum supported version
-     */
-    public const MIN_VERSION = '1.1.0';
-
-    /**
-     * 执行升级程序
+     * 执行构建迁移
+     *
+     * 通过构建号判断需要执行的迁移脚本, 执行完成后将构建号写入 options 表.
      *
      * @throws \Typecho\Db\Exception
      */
     public function upgrade()
     {
-        $currentVersion = $this->options->version;
-
-        if (version_compare($currentVersion, self::MIN_VERSION, '<')) {
-            Notice::alloc()->set(
-                _t('请先升级至版本 %s', self::MIN_VERSION),
-                'error'
-            );
-
-            $this->response->goBack();
-        }
+        $currentBuild = (int) $this->options->build;
 
         $ref = new \ReflectionClass(UpgradeAction::class);
         $message = [];
 
         foreach ($ref->getMethods() as $method) {
-            preg_match("/^v([_0-9]+)$/", $method->getName(), $matches);
-            $version = str_replace('_', '.', $matches[1]);
+            preg_match("/^v([0-9]+)$/", $method->getName(), $matches);
 
-            if (version_compare($currentVersion, $version, '>=')) {
+            if (empty($matches)) {
                 continue;
             }
 
-            $options = Options::allocWithAlias($version);
+            $build = (int) $matches[1];
+
+            if ($currentBuild >= $build) {
+                continue;
+            }
+
+            $alias = 'v' . $build;
+            $options = Options::allocWithAlias($alias);
 
             /** 执行升级脚本 */
             try {
@@ -67,20 +61,14 @@ class Upgrade extends BaseOptions implements ActionInterface
                 $this->response->goBack();
             }
 
-            /** 更新版本号 */
+            /** 更新构建号 */
             $this->update(
-                ['value' => 'Typecho ' . $version],
-                $this->db->sql()->where('name = ?', 'generator')
+                ['value' => $build],
+                $this->db->sql()->where('name = ?', 'build')
             );
 
-            Options::destroy($version);
+            Options::destroy($alias);
         }
-
-        /** 更新版本号 */
-        $this->update(
-            ['value' => 'Typecho ' . Common::VERSION],
-            $this->db->sql()->where('name = ?', 'generator')
-        );
 
         Notice::alloc()->set(
             empty($message) ? _t("升级已经完成") : $message,
@@ -146,12 +134,24 @@ class Upgrade extends BaseOptions implements ActionInterface
                 throw new Exception(_t('上传的文件不是有效的 Typecho 升级包'));
             }
 
-            // 读取新版本号
-            $newVersion = $this->detectVersion($root);
+            // 读取新版本号及构建号
+            [$newVersion, $newBuild] = $this->detectVersion($root);
             $currentVersion = $this->options->version;
+            $currentBuild = (int) Common::BUILD;
 
-            if (!empty($newVersion) && version_compare($newVersion, $currentVersion, '<')) {
-                throw new Exception(_t('您上传的版本(%s)低于当前版本(%s), 无需升级', $newVersion, $currentVersion));
+            // 优先比较构建号, 其次回退到版本号
+            if ($newBuild > 0 && $currentBuild > 0) {
+                $isNewer = $newBuild > $currentBuild;
+                $isOlder = $newBuild < $currentBuild;
+                $desc = _t('您上传的构建号(%d)低于当前构建号(%d), 无需升级', $newBuild, $currentBuild);
+            } else {
+                $isNewer = !empty($newVersion) && version_compare($newVersion, $currentVersion, '>');
+                $isOlder = !empty($newVersion) && version_compare($newVersion, $currentVersion, '<');
+                $desc = _t('您上传的版本(%s)低于当前版本(%s), 无需升级', $newVersion, $currentVersion);
+            }
+
+            if ($isOlder) {
+                throw new Exception($desc);
             }
 
             // 检查目录可写
@@ -183,15 +183,14 @@ class Upgrade extends BaseOptions implements ActionInterface
             // 清理临时文件
             $this->removeDir($tmpDir);
 
-            $notice = empty($newVersion)
+            $notice = empty($newVersion) && 0 == $newBuild
                 ? _t('文件已更新完成')
-                : (_t('文件已更新至 %s 版本', $newVersion)
-                    . (version_compare($newVersion, $currentVersion, '>')
-                        ? ', ' . _t('正在执行数据库升级') : ''));
+                : (_t('文件已更新至 %s 版本', empty($newBuild) ? $newVersion : $newBuild)
+                    . ($isNewer ? ', ' . _t('正在执行数据库升级') : ''));
 
             Notice::alloc()->set($notice, 'success');
 
-            $auto = !empty($newVersion) && version_compare($newVersion, $currentVersion, '>');
+            $auto = $isNewer;
             $target = Common::url('upgrade.php', $this->options->adminUrl) . ($auto ? '?auto=1' : '');
             $this->response->redirect($target);
             return;
@@ -337,21 +336,24 @@ class Upgrade extends BaseOptions implements ActionInterface
     }
 
     /**
-     * 从包内读取 Typecho 版本号
+     * 从包内读取 Typecho 版本号及构建号
      *
      * @param string $dir
-     * @return string
+     * @return array{0: string, 1: int} [版本号, 构建号]
      */
-    private function detectVersion(string $dir): string
+    private function detectVersion(string $dir): array
     {
         $content = @file_get_contents($dir . '/var/Typecho/Common.php');
         if (false === $content) {
-            return '';
+            return ['', 0];
         }
 
-        return preg_match("/const VERSION\s*=\s*'([0-9.]+)'/", $content, $matches)
-            ? $matches[1]
-            : '';
+        return [
+            preg_match("/const VERSION\s*=\s*'([0-9.]+)'/", $content, $matches)
+                ? $matches[1] : '',
+            preg_match("/const BUILD\s*=\s*'([0-9]+)'/", $content, $matches)
+                ? (int) $matches[1] : 0
+        ];
     }
 
     /**

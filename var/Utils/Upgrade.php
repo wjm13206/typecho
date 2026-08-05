@@ -16,10 +16,12 @@ use Widget\Options;
 class Upgrade
 {
     /**
+     * 构建号迁移: 1
+     *
      * @param Db $db
      * @param Options $options
      */
-    public static function v1_3_0(Db $db, Options $options)
+    public static function v1(Db $db, Options $options)
     {
         $routingTable = $options->routingTable;
 

@@ -13,6 +13,9 @@ on:
 permissions:
   contents: write
 
+env:
+  BUILD_NUMBER: ${{ github.run_number }}
+
 jobs:
   php:
     name: PHP ${{ matrix.php }} Tests
@@ -47,6 +50,8 @@ jobs:
         cp -r LICENSE.txt index.php install.php admin install usr var build/
         mkdir build/usr/uploads/
         chmod 755 build/usr/uploads/
+        echo "BUILD_NUMBER=$BUILD_NUMBER" >> build/usr/build_number.txt
+        sed -i "s/const BUILD = '0'/const BUILD = '$BUILD_NUMBER'/" build/var/Typecho/Common.php
         rm -rf build/admin/src
         rm -rf build/usr/themes/classic-22/static/scss
         cd build && zip -q -r typecho.zip * && mv typecho.zip ../ && cd -

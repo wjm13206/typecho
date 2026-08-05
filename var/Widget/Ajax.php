@@ -2,6 +2,7 @@
 
 namespace Widget;
 
+use Typecho\Common;
 use Typecho\Http\Client;
 use Typecho\Widget\Exception;
 use Widget\Base\Options as BaseOptions;
@@ -55,16 +56,26 @@ class Ajax extends BaseOptions implements ActionInterface
 
                 if (!empty($json)) {
                     $version = $this->options->version;
+                    $build = Common::BUILD;
 
-                    if (
-                        isset($json['release'])
-                        && preg_match("/^[0-9.]+$/", $json['release'])
-                        && version_compare($json['release'], $version, '>')
-                    ) {
+                    // 优先使用构建号判断, 其次回退到版本号
+                    if (isset($json['build']) && preg_match("/^\d+$/", $json['build'])) {
+                        $available = (int) $json['build'] > (int) $build;
+                        $latest = $json['build'];
+                        $current = $build;
+                    } else {
+                        $available = isset($json['release'])
+                            && preg_match("/^[0-9.]+$/", $json['release'])
+                            && version_compare($json['release'], $version, '>');
+                        $latest = $json['release'] ?? '';
+                        $current = $version;
+                    }
+
+                    if ($available) {
                         $result = [
                             'available' => 1,
-                            'latest'    => $json['release'],
-                            'current'   => $version,
+                            'latest'    => $latest,
+                            'current'   => $current,
                             'link'      => 'https://typecho.org/download'
                         ];
                     }

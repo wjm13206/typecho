@@ -170,6 +170,9 @@ namespace Typecho {
         /** 程序版本 */
         public const VERSION = '1.3.0';
 
+        /** 构建号 */
+        public const BUILD = '0';
+
         /**
          * 将路径转化为链接
          *

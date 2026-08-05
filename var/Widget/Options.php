@@ -54,6 +54,7 @@ if (!defined('__TYPECHO_ROOT_DIR__')) {
  * @property string $charset
  * @property string $contentType
  * @property string $generator
+ * @property string $build
  * @property string $software
  * @property string $version
  * @property bool $markdown
