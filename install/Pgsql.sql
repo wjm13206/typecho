@@ -22,6 +22,7 @@ CREATE TABLE "typecho_comments" (  "coid" INT NOT NULL DEFAULT nextval('typecho_
 
 CREATE INDEX "typecho_comments_cid" ON "typecho_comments" ("cid");
 CREATE INDEX "typecho_comments_created" ON "typecho_comments" ("created");
+CREATE INDEX "typecho_comments_cid_status" ON "typecho_comments" ("cid","status");
 
 
 --
@@ -52,6 +53,7 @@ CREATE TABLE "typecho_contents" (  "cid" INT NOT NULL DEFAULT nextval('typecho_c
 );
 
 CREATE INDEX "typecho_contents_created" ON "typecho_contents" ("created");
+CREATE INDEX "typecho_contents_type_status_created" ON "typecho_contents" ("type","status","created");
 
 --
 -- Table structure for table "typecho_fields"
@@ -87,6 +89,7 @@ CREATE TABLE "typecho_metas" (  "mid" INT NOT NULL DEFAULT nextval('typecho_meta
 );
 
 CREATE INDEX "typecho_metas_slug" ON "typecho_metas" ("slug");
+CREATE INDEX "typecho_metas_type_slug" ON "typecho_metas" ("type","slug");
 
 
 --
@@ -106,7 +109,9 @@ CREATE TABLE "typecho_options" (  "name" VARCHAR(32) NOT NULL DEFAULT '',
 CREATE TABLE "typecho_relationships" (  "cid" INT NOT NULL DEFAULT '0',
   "mid" INT NOT NULL DEFAULT '0',
   PRIMARY KEY ("cid","mid")
-); 
+);
+
+CREATE INDEX "typecho_relationships_mid" ON "typecho_relationships" ("mid");
 
 --
 -- Table structure for table "typecho_users"

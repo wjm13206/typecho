@@ -15,6 +15,7 @@ CREATE TABLE typecho_comments ( "coid" INTEGER NOT NULL PRIMARY KEY,
 
 CREATE INDEX typecho_comments_cid ON typecho_comments ("cid");
 CREATE INDEX typecho_comments_created ON typecho_comments ("created");
+CREATE INDEX typecho_comments_cid_status ON typecho_comments ("cid","status");
 
 CREATE TABLE typecho_contents ( "cid" INTEGER NOT NULL PRIMARY KEY, 
 "title" varchar(150) default NULL ,
@@ -36,6 +37,7 @@ CREATE TABLE typecho_contents ( "cid" INTEGER NOT NULL PRIMARY KEY,
 
 CREATE UNIQUE INDEX typecho_contents_slug ON typecho_contents ("slug");
 CREATE INDEX typecho_contents_created ON typecho_contents ("created");
+CREATE INDEX typecho_contents_type_status_created ON typecho_contents ("type","status","created");
 
 CREATE TABLE "typecho_fields" ("cid" INTEGER NOT NULL,
   "name" varchar(150) NOT NULL,
@@ -59,6 +61,7 @@ CREATE TABLE typecho_metas ( "mid" INTEGER NOT NULL PRIMARY KEY,
 "parent" int(10) default '0');
 
 CREATE INDEX typecho_metas_slug ON typecho_metas ("slug");
+CREATE INDEX typecho_metas_type_slug ON typecho_metas ("type","slug");
 
 CREATE TABLE typecho_options ( "name" varchar(32) NOT NULL , 
 "user" int(10) NOT NULL default '0' , 
@@ -70,6 +73,7 @@ CREATE TABLE typecho_relationships ( "cid" int(10) NOT NULL ,
 "mid" int(10) NOT NULL );
 
 CREATE UNIQUE INDEX typecho_relationships_cid_mid ON typecho_relationships ("cid", "mid");
+CREATE INDEX typecho_relationships_mid ON typecho_relationships ("mid");
 
 CREATE TABLE typecho_users ( "uid" INTEGER NOT NULL PRIMARY KEY, 
 "name" varchar(32) default NULL ,

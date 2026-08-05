@@ -34,7 +34,8 @@ CREATE TABLE `typecho_comments` (
   `parent` int(10) unsigned default '0',
   PRIMARY KEY  (`coid`),
   KEY `cid` (`cid`),
-  KEY `created` (`created`)
+  KEY `created` (`created`),
+  KEY `cid_status` (`cid`,`status`)
 ) ENGINE=%engine%  DEFAULT CHARSET=%charset%;
 
 -- --------------------------------------------------------
@@ -63,7 +64,8 @@ CREATE TABLE `typecho_contents` (
   `parent` int(10) unsigned default '0',
   PRIMARY KEY  (`cid`),
   UNIQUE KEY `slug` (`slug`),
-  KEY `created` (`created`)
+  KEY `created` (`created`),
+  KEY `type_status_created` (`type`,`status`,`created`)
 ) ENGINE=%engine%  DEFAULT CHARSET=%charset%;
 
 -- --------------------------------------------------------
@@ -100,7 +102,8 @@ CREATE TABLE `typecho_metas` (
   `order` int(10) unsigned default '0',
   `parent` int(10) unsigned default '0',
   PRIMARY KEY  (`mid`),
-  KEY `slug` (`slug`)
+  KEY `slug` (`slug`),
+  KEY `type_slug` (`type`,`slug`)
 ) ENGINE=%engine%  DEFAULT CHARSET=%charset%;
 
 -- --------------------------------------------------------
@@ -125,7 +128,8 @@ CREATE TABLE `typecho_options` (
 CREATE TABLE `typecho_relationships` (
   `cid` int(10) unsigned NOT NULL,
   `mid` int(10) unsigned NOT NULL,
-  PRIMARY KEY  (`cid`,`mid`)
+  PRIMARY KEY  (`cid`,`mid`),
+  KEY `mid` (`mid`)
 ) ENGINE=%engine% DEFAULT CHARSET=%charset%;
 
 -- --------------------------------------------------------
