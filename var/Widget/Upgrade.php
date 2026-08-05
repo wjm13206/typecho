@@ -4,7 +4,6 @@ namespace Widget;
 
 use Typecho\Common;
 use Exception;
-use Typecho\Widget\Exception;
 use Widget\Base\Options as BaseOptions;
 use Utils\Upgrade as UpgradeAction;
 
