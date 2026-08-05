@@ -40,6 +40,11 @@ include 'common-js.php';
         if (window.sessionStorage) {
             sessionStorage.removeItem('update');
         }
+        <?php if ($request->get('auto')): ?>
+        $(function () {
+            $('form button').trigger('click');
+        });
+        <?php endif; ?>
     })();
 </script>
 <?php include 'footer.php'; ?>
