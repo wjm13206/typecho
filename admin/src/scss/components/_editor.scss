@@ -5,7 +5,7 @@
   margin-bottom: -0.5em;
 }
 
-@import "editor/*.png";
+@import "editor-1x";
 @include all-editor-sprites(true);
 
 @mixin editor-button($name) {
@@ -21,7 +21,7 @@
   @media
   (-webkit-min-device-pixel-ratio: 2),
   (min-resolution: 192dpi) {
-    @import "editor/*@2x.png";
+    @import "editor-2x";
     @include all-editor-sprites();
 
     @mixin editor-button-2x($name) {

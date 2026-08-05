@@ -4,7 +4,7 @@
   "description": "Typecho build tools",
   "main": "build.js",
   "engines": {
-    "node": "18.x"
+    "node": ">=20.19.0"
   },
   "scripts": {
     "build_js": "node build.js js",
@@ -17,10 +17,8 @@
   "author": "joyqi",
   "license": "GPL-2.0-only",
   "dependencies": {
-    "@picocss/pico": "^2.0.6",
-    "chalk": "^4.0.0",
-    "node-sass": "^9.0.0",
-    "sprite-magic-importer": "^1.6.2",
-    "uglify-js": "^3.11.6"
+    "@picocss/pico": "^2.1.1",
+    "sass": "^1.102.0",
+    "uglify-js": "^3.19.3"
   }
 }

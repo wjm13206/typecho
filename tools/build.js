@@ -1,60 +1,43 @@
-const sass = require('node-sass'),
-    color = require('chalk'),
+const sass = require('sass'),
     fs = require('fs'),
-    SpriteMagicImporter = require('sprite-magic-importer'),
     UglifyJS = require("uglify-js"),
     srcDir = __dirname + '/../admin/src',
     distDir = __dirname + '/../admin',
     themeDir = __dirname + '/../usr/themes/classic-22',
     action = process.argv.pop();
 
-let spriteImporter = SpriteMagicImporter({
-    sass_dir: srcDir,
-    images_dir: srcDir + '/img',
-    generated_images_dir: distDir + '/img',
-    http_stylesheets_path: '.',
-    http_generated_images_path: 'img',
-    use_cache: false,
-    cache_dir: __dirname + '/tmp',
+const logger = {
+    warn: function (message, options) {
+        if (options.deprecation) {
+            return;
+        }
 
-    // spritesmith options
-    spritesmith: {
-        algorithm: 'top-down',
-        padding: 0
+        console.warn(message);
     },
-
-    // imagemin-pngquant options
-    pngquant: {
-        quality: 75,
-        speed: 10
-    }
-});
+    debug: function () {}
+};
 
 function buildSass(file, dist, sassDir)
 {
     let outFile = dist + '/' + file.split('.')[0] + '.css';
-    console.log(color.green('processing ' + file));
+    console.log('processing ', file);
 
-    sass.render({
-        file: sassDir + '/' + file,
-        outFile: outFile,
-        includePaths: [sassDir],
-        outputStyle: 'compressed',
-        importer: spriteImporter
-    }, function (error, result) {
-        if (error) {
-            console.error(color.red('Error: ' + error.message));
-            console.error(color.red('File: ' + error.file + ' [Line:' + error.line + ']'
-                + '[Col:' + error.column + ']'));
-        } else {
-            fs.writeFileSync(outFile, result.css.toString());
-        }
-    });
+    try {
+        let result = sass.compile(sassDir + '/' + file, {
+            style: 'compressed',
+            loadPaths: [sassDir],
+            logger: logger
+        });
+
+        fs.writeFileSync(outFile, result.css.toString() + '\n');
+    } catch (error) {
+        console.error('Error: ' + error.message);
+    }
 }
 
 function minifyJs(file, dist)
 {
-    console.log(color.green('minify ' + file));
+    console.log('minify ', file);
     let code = {};
     code[file] = fs.readFileSync(srcDir + '/js/' + file).toString('utf8');
 
@@ -78,23 +61,23 @@ function listFiles(dir, regExp)
 }
 
 if (action === 'css') {
-    console.log(color.blue('build css'));
+    console.log('build css');
 
     listFiles(srcDir + '/scss', /^[a-z0-9-]+\.scss$/).forEach(function (file) {
         buildSass(file, distDir + '/css', srcDir + '/scss');
     });
 } else if (action === 'js') {
-    console.log(color.blue('build js'));
+    console.log('build js');
 
     listFiles(srcDir + '/js', /^[-\w]+\.js$/).forEach(function (file) {
         minifyJs(file, distDir + '/js');
     });
 } else if (action === 'theme_css') {
-    console.log(color.blue('build theme css'));
+    console.log('build theme css');
 
     listFiles(themeDir + '/static/scss', /^[a-z0-9-]+\.scss$/).forEach(function (file) {
         buildSass(file, themeDir + '/static/css', themeDir + '/static/scss');
     });
 } else {
-    console.log(color.red('Please choose correct action.'));
+    console.log('Please choose correct action.');
 }

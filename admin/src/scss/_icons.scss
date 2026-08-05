@@ -1,13 +1,13 @@
 /**
  * icons
  */
-@import "icons/*.png";
+@import "icons-1x";
 @include all-icons-sprites(true);
 
 @media
 (-webkit-min-device-pixel-ratio: 2),
 (min-resolution: 192dpi) {
-  @import "icons/*@2x.png";
+  @import "icons-2x";
   @include all-icons-sprites();
 
   @mixin icon-style($type, $name) {

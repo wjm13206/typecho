@@ -1,0 +1,167 @@
+$sprite-selectors: hover, target, active, focus !default;
+$disable-magic-sprite-selectors: false !default;
+$default-sprite-separator: '-' !default;
+$editor-sprite-dimensions: false !default;
+$editor-class-separator: $default-sprite-separator !default;
+$editor-sprite-base-class: '.editor#{$editor-class-separator}sprite' !default;
+$editor-pixel-ratio: 1;
+$editor-image-width: 20px;
+$editor-image-height: 300px;
+
+%editor-ce98884 {
+    background-image: url('../img/editor.png?_=ce98884');
+    background-repeat: no-repeat;
+    @if $editor-pixel-ratio != 1 {
+        background-size: #{$editor-image-width / $editor-pixel-ratio} #{$editor-image-height / $editor-pixel-ratio};
+    }
+}
+#{$editor-sprite-base-class} {
+    @extend %editor-ce98884;
+}
+
+$editor-sprites: (
+    editor-bold: (
+        x: 0, y: 0, width: 20px, height: 20px
+    ),
+    editor-code: (
+        x: 0, y: 20px, width: 20px, height: 20px
+    ),
+    editor-exit-fullscreen: (
+        x: 0, y: 40px, width: 20px, height: 20px
+    ),
+    editor-fullscreen: (
+        x: 0, y: 60px, width: 20px, height: 20px
+    ),
+    editor-heading: (
+        x: 0, y: 80px, width: 20px, height: 20px
+    ),
+    editor-hr: (
+        x: 0, y: 100px, width: 20px, height: 20px
+    ),
+    editor-image: (
+        x: 0, y: 120px, width: 20px, height: 20px
+    ),
+    editor-italic: (
+        x: 0, y: 140px, width: 20px, height: 20px
+    ),
+    editor-link: (
+        x: 0, y: 160px, width: 20px, height: 20px
+    ),
+    editor-more: (
+        x: 0, y: 180px, width: 20px, height: 20px
+    ),
+    editor-olist: (
+        x: 0, y: 200px, width: 20px, height: 20px
+    ),
+    editor-quote: (
+        x: 0, y: 220px, width: 20px, height: 20px
+    ),
+    editor-redo: (
+        x: 0, y: 240px, width: 20px, height: 20px
+    ),
+    editor-ulist: (
+        x: 0, y: 260px, width: 20px, height: 20px
+    ),
+    editor-undo: (
+        x: 0, y: 280px, width: 20px, height: 20px
+    )
+);
+
+@function editor-sprite-width($sprite) {
+    @return map-get(map-get($editor-sprites, $sprite), 'width') / $editor-pixel-ratio;
+}
+
+@function editor-sprite-height($sprite) {
+    @return map-get(map-get($editor-sprites, $sprite), 'height') / $editor-pixel-ratio;
+}
+
+@mixin editor-sprite-dimensions($sprite) {
+    width: editor-sprite-width($sprite);
+    height: editor-sprite-height($sprite);
+}
+
+@mixin editor-sprite-magic-background-position($sprite-data, $offset-x: 0, $offset-y: 0) {
+    $x: $offset-x - map-get($sprite-data, 'x');
+    $y: $offset-y - map-get($sprite-data, 'y');
+    background-position: #{$x / $editor-pixel-ratio} #{$y / $editor-pixel-ratio};
+}
+
+@mixin editor-sprite-selectors(
+    $sprite-name, $full-sprite-name, $offset-x: 0, $offset-y: 0,
+    $unsupported: false, $separator: $editor-class-separator
+) {
+    $sprite-data: map-get($editor-sprites, $sprite-name);
+    @each $state in $sprite-selectors {
+        @if map-has-key($sprite-data, $state) {
+            $sprite-class: "#{$full-sprite-name}#{$separator}#{$state}";
+            &:#{$state}, &.#{$sprite-class} {
+                @include editor-sprite-magic-background-position(map-get($sprite-data, $state), $offset-x, $offset-y);
+            }
+        }
+    }
+}
+
+@mixin editor-sprite(
+    $sprite, $dimensions: $editor-sprite-dimensions, $offset-x: 0, $offset-y: 0, $unsupported: false,
+    $use-magic-selectors: not $disable-magic-sprite-selectors, $separator: $editor-class-separator
+) {
+    $sprite-data: map-get($editor-sprites, $sprite);
+    @extend %editor-ce98884;
+    @include editor-sprite-magic-background-position($sprite-data, $offset-x, $offset-y);
+    @if $dimensions {
+        @include editor-sprite-dimensions($sprite);
+    }
+    @if $use-magic-selectors {
+        @include editor-sprite-selectors(
+            $sprite, $sprite, $offset-x, $offset-y, $unsupported, $separator
+        );
+    }
+}
+
+@mixin all-editor-sprites($dimensions: $editor-sprite-dimensions) {
+    .editor-editor-bold {
+        @include editor-sprite(editor-bold, $dimensions);
+    }
+    .editor-editor-code {
+        @include editor-sprite(editor-code, $dimensions);
+    }
+    .editor-editor-exit-fullscreen {
+        @include editor-sprite(editor-exit-fullscreen, $dimensions);
+    }
+    .editor-editor-fullscreen {
+        @include editor-sprite(editor-fullscreen, $dimensions);
+    }
+    .editor-editor-heading {
+        @include editor-sprite(editor-heading, $dimensions);
+    }
+    .editor-editor-hr {
+        @include editor-sprite(editor-hr, $dimensions);
+    }
+    .editor-editor-image {
+        @include editor-sprite(editor-image, $dimensions);
+    }
+    .editor-editor-italic {
+        @include editor-sprite(editor-italic, $dimensions);
+    }
+    .editor-editor-link {
+        @include editor-sprite(editor-link, $dimensions);
+    }
+    .editor-editor-more {
+        @include editor-sprite(editor-more, $dimensions);
+    }
+    .editor-editor-olist {
+        @include editor-sprite(editor-olist, $dimensions);
+    }
+    .editor-editor-quote {
+        @include editor-sprite(editor-quote, $dimensions);
+    }
+    .editor-editor-redo {
+        @include editor-sprite(editor-redo, $dimensions);
+    }
+    .editor-editor-ulist {
+        @include editor-sprite(editor-ulist, $dimensions);
+    }
+    .editor-editor-undo {
+        @include editor-sprite(editor-undo, $dimensions);
+    }
+}
