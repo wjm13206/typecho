@@ -6,6 +6,9 @@ include 'menu.php';
 $actionUrl = $security->getTokenUrl(
     \Typecho\Router::url('do', ['action' => 'upgrade', 'widget' => 'Upgrade'],
         \Typecho\Common::url('index.php', $options->rootUrl)));
+
+$upgrade = \Widget\Upgrade::widget();
+$backups = $upgrade->listBackups();
 ?>
 
 <main class="main">
@@ -37,6 +40,27 @@ $actionUrl = $security->getTokenUrl(
                         </ul>
                     </form>
                 </div>
+
+                <?php if (!empty($backups)): ?>
+                <div id="typecho-backup" style="margin-top:24px;">
+                    <h3><?php _e('升级备份'); ?></h3>
+                    <p><?php _e('以下为历次在线升级时自动备份的核心文件目录'); ?></p>
+                    <div class="typecho-list">
+                        <ul class="typecho-option">
+                            <?php foreach ($backups as $backup): $name = basename($backup); ?>
+                            <li>
+                                <span class="typecho-label" style="font-weight:normal;"><?php echo $name; ?></span>
+                                <form action="<?php echo $actionUrl; ?>" method="post" style="display:inline;">
+                                    <input type="hidden" name="do" value="deleteBackup">
+                                    <input type="hidden" name="name" value="<?php echo $name; ?>">
+                                    <button type="submit" class="btn"><?php _e('删除'); ?></button>
+                                </form>
+                            </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -55,6 +79,10 @@ include 'form-js.php';
         }
 
         return confirm('<?php _e('升级将覆盖系统核心文件, 是否继续?'); ?>');
+    });
+
+    $('#typecho-backup form').submit(function () {
+        return confirm('<?php _e('确定要删除该备份吗? 删除后无法恢复!'); ?>');
     });
 </script>
 <?php include 'footer.php'; ?>

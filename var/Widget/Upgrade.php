@@ -205,6 +205,52 @@ class Upgrade extends BaseOptions implements ActionInterface
     }
 
     /**
+     * 删除备份目录
+     *
+     * @throws Exception
+     */
+    public function deleteBackup()
+    {
+        $dirs = $this->listBackups();
+
+        try {
+            $name = basename($this->request->get('name', ''));
+            if (empty($name) || !in_array($name, array_map('basename', $dirs))) {
+                throw new Exception(_t('备份不存在'));
+            }
+
+            $this->removeDir(__TYPECHO_ROOT_DIR__ . '/usr/upgrade/' . $name);
+            Notice::alloc()->set(_t('备份 %s 已删除', $name), 'success');
+        } catch (Exception $e) {
+            Notice::alloc()->set($e->getMessage(), 'error');
+        }
+
+        $this->response->goBack();
+    }
+
+    /**
+     * 列出备份目录
+     *
+     * @return string[]
+     */
+    public function listBackups(): array
+    {
+        $dir = __TYPECHO_ROOT_DIR__ . '/usr/upgrade';
+        if (!is_dir($dir)) {
+            return [];
+        }
+
+        $backups = array_filter(scandir($dir), function ($item) use ($dir) {
+            return preg_match('/^backup-[0-9]{14}$/', $item) && is_dir($dir . '/' . $item);
+        });
+
+        rsort($backups);
+        return array_values(array_map(function ($item) use ($dir) {
+            return $dir . '/' . $item;
+        }, $backups));
+    }
+
+    /**
      * 解压 zip 压缩包
      *
      * @param string $archive 压缩包路径
@@ -433,6 +479,7 @@ class Upgrade extends BaseOptions implements ActionInterface
         $this->user->pass('administrator');
         $this->security->protect();
         $this->on($this->request->isPost() && $this->request->is('do=online'))->upgradeOnline();
+        $this->on($this->request->isPost() && $this->request->is('do=deleteBackup'))->deleteBackup();
         $this->on($this->request->isPost())->upgrade();
         $this->response->redirect($this->options->adminUrl);
     }
