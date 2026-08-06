@@ -104,6 +104,56 @@ class Admin extends Contents
         $select->order('table.contents.cid', Db::SORT_DESC)
             ->page($this->currentPage, $this->parameter->pageSize);
 
-        $this->db->fetchAll($select, [$this, 'push']);
+        $rows = $this->db->fetchAll($select);
+
+        if (empty($rows)) {
+            return;
+        }
+
+        /* 所有模块的id */
+        $cid = array_column($rows, 'cid');
+
+        /* 批量获取修订版，取每个文章最新的修订 */
+        $select = $this->select('parent', 'modified')
+            ->where('table.contents.parent in ?', $cid)
+            ->where('table.contents.type = ?', 'revision')
+            ->order('table.contents.modified', Db::SORT_DESC);
+        $revisions = [];
+
+        foreach ($this->db->fetchAll($select) as $revision) {
+            if (!isset($revisions[$revision['parent']])) {
+                $revisions[$revision['parent']] = $revision['modified'];
+            }
+        }
+
+        /* 批量获取分类 */
+        $select = $this->select('table.relationships.cid,table.metas.*')
+            ->from('table.relationships')
+            ->join('table.metas', 'table.relationships.mid = table.metas.mid')
+            ->where('table.metas.type = ?', 'category')
+            ->where('table.relationships.cid IN ?', $cid);
+        $categories = $this->db->fetchAll($select);
+
+        /* 按 order、mid 排序，保持与分类树一致的确定性顺序 */
+        usort($categories, function ($a, $b) {
+            return [$a['order'], $a['mid']] <=> [$b['order'], $b['mid']];
+        });
+
+        $contentCategories = [];
+
+        foreach ($categories as $category) {
+            $contentCategories[$category['cid']][] = $category;
+        }
+
+        /* 补全分类、修订版，避免渲染时的 N+1 查询 */
+        foreach ($rows as &$row) {
+            $row['#categories'] = $contentCategories[$row['cid']] ?? [];
+            $row['#revision'] = isset($revisions[$row['cid']])
+                ? ['cid' => $row['cid'], 'modified' => $revisions[$row['cid']]]
+                : null;
+        }
+        unset($row);
+
+        $this->pushAll($rows);
     }
 }
