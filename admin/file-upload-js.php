@@ -121,6 +121,11 @@ $(document).ready(function() {
         li.effect('highlight', {color : '#FBC2C4'}, 2000, function () {
             $(this).remove();
         });
+
+        const callbacks = file ? uploadCallbacksMap.get(file) : null;
+        if (callbacks && callbacks.onError) {
+            callbacks.onError(type);
+        }
     }
 
     function fileUploadComplete (file, attachment) {
@@ -142,6 +147,11 @@ $(document).ready(function() {
         if (!completeFile) {
             Typecho.uploadComplete(attachment);
             completeFile = true;
+        }
+
+        const callbacks = uploadCallbacksMap.get(file);
+        if (callbacks && callbacks.onSuccess) {
+            callbacks.onSuccess(attachment);
         }
     }
 
@@ -192,7 +202,11 @@ $(document).ready(function() {
             });
         };
 
-        return function (file) {
+        return function (file, callbacks) {
+            if (callbacks) {
+                uploadCallbacksMap.set(file, callbacks);
+            }
+
             file.id = 'upload-' + (index++);
 
             if (file.size > maxSize) {
@@ -228,7 +242,10 @@ $(document).ready(function() {
                     function () {
                         $(el).fadeOut(function () {
                             $(this).remove();
-                            updateAttachmentNumber();
+    updateAttachmentNumber();
+
+    // uploadFile(file, callbacks) 第二参数的暂存处，编辑器拖拽/粘贴上传时用来取回上传结果
+    const uploadCallbacksMap = new WeakMap();
                         });
                     });
             }
