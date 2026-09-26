@@ -136,7 +136,7 @@ $.TokenList = function (input, url_or_data, settings) {
     //
 
     // Configure the data source
-    if($.type(url_or_data) === "string" || $.type(url_or_data) === "function") {
+    if(typeof url_or_data === "string" || typeof url_or_data === "function") {
         // Set the url to query against
         settings.url = url_or_data;
 
@@ -368,7 +368,7 @@ $.TokenList = function (input, url_or_data, settings) {
     // Pre-populate list if items exist
     hidden_input.val("");
     var li_data = settings.prePopulate || hidden_input.data("pre");
-    if(settings.processPrePopulate && $.isFunction(settings.onResult)) {
+    if(settings.processPrePopulate && typeof settings.onResult === "function") {
         li_data = settings.onResult.call(hidden_input, li_data);
     }
     if(li_data && li_data.length) {
@@ -379,7 +379,7 @@ $.TokenList = function (input, url_or_data, settings) {
     }
 
     // Initialization is done
-    if($.isFunction(settings.onReady)) {
+    if(typeof settings.onReady === "function") {
         settings.onReady.call();
     }
 
@@ -539,7 +539,7 @@ $.TokenList = function (input, url_or_data, settings) {
         hide_dropdown();
 
         // Execute the onAdd callback if defined
-        if($.isFunction(callback)) {
+        if(typeof callback === "function") {
             callback.call(hidden_input,item);
         }
     }
@@ -624,7 +624,7 @@ $.TokenList = function (input, url_or_data, settings) {
         }
 
         // Execute the onDelete callback if defined
-        if($.isFunction(callback)) {
+        if(typeof callback === "function") {
             callback.call(hidden_input,token_data);
         }
     }
@@ -806,7 +806,7 @@ $.TokenList = function (input, url_or_data, settings) {
 
                 // Attach the success callback
                 ajax_params.success = function(results) {
-                  if($.isFunction(settings.onResult)) {
+                  if(typeof settings.onResult === "function") {
                       results = settings.onResult.call(hidden_input, results, query, val);
                   }
                   cache.add(cache_key, settings.jsonContainer ? results[settings.jsonContainer] : results);
@@ -825,7 +825,7 @@ $.TokenList = function (input, url_or_data, settings) {
                     return row[settings.propertyToSearch].toLowerCase().indexOf(query.toLowerCase()) > -1;
                 });
 
-                if($.isFunction(settings.onResult)) {
+                if(typeof settings.onResult === "function") {
                     results = settings.onResult.call(hidden_input, results, query, val);
                 }
                 cache.add(cache_key, results);

@@ -18,7 +18,7 @@
   "license": "GPL-2.0-only",
   "dependencies": {
     "@picocss/pico": "^2.1.1",
-    "sass": "^1.102.0",
-    "uglify-js": "^3.19.3"
+    "sass": "^1.105.0",
+    "terser": "^5.51.2"
   }
 }

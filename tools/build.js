@@ -1,6 +1,6 @@
 const sass = require('sass'),
     fs = require('fs'),
-    UglifyJS = require("uglify-js"),
+    Terser = require("terser"),
     srcDir = __dirname + '/../admin/src',
     distDir = __dirname + '/../admin',
     themeDir = __dirname + '/../usr/themes/classic-22',
@@ -35,16 +35,22 @@ function buildSass(file, dist, sassDir)
     }
 }
 
-function minifyJs(file, dist)
+async function minifyJs(file, dist)
 {
     console.log('minify ', file);
-    let code = {};
-    code[file] = fs.readFileSync(srcDir + '/js/' + file).toString('utf8');
+    const code = fs.readFileSync(srcDir + '/js/' + file).toString('utf8');
 
-    fs.writeFileSync(
-        dist + '/' + file,
-        UglifyJS.minify(code).code
-    );
+    // terser 是异步的，且能正确处理 ES6+（新版 DOMPurify 为 ES6 语法，
+    // 旧 uglify-js 会压坏或报错）。失败时保留旧产物并报错退出，不再写入 undefined。
+    const result = await Terser.minify(code);
+
+    if (result.error) {
+        console.error('Error: ' + result.error.message);
+        process.exitCode = 1;
+        return;
+    }
+
+    fs.writeFileSync(dist + '/' + file, result.code);
 }
 
 function listFiles(dir, regExp)
@@ -69,9 +75,11 @@ if (action === 'css') {
 } else if (action === 'js') {
     console.log('build js');
 
-    listFiles(srcDir + '/js', /^[-\w]+\.js$/).forEach(function (file) {
-        minifyJs(file, distDir + '/js');
-    });
+    (async function () {
+        for (const file of listFiles(srcDir + '/js', /^[-\w]+\.js$/)) {
+            await minifyJs(file, distDir + '/js');
+        }
+    })();
 } else if (action === 'theme_css') {
     console.log('build theme css');
 
