@@ -29,6 +29,7 @@
 </script>
 <?php else: ?>
 <link rel="stylesheet" href="<?php $options->adminStaticUrl('css', 'easymde.min.css'); ?>">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/7.3.1/css/all.min.css">
 <script src="<?php $options->adminStaticUrl('js', 'hyperdown.js'); ?>"></script>
 <script src="<?php $options->adminStaticUrl('js', 'easymde.js'); ?>"></script>
 <script src="<?php $options->adminStaticUrl('js', 'purify.js'); ?>"></script>
@@ -130,28 +131,28 @@ $(document).ready(function () {
                 }
             },
             toolbar: [
-                {name: 'bold', action: EasyMDE.toggleBold, title: '<?php _e('加粗'); ?>', text: '<?php _e('加粗'); ?>'},
-                {name: 'italic', action: EasyMDE.toggleItalic, title: '<?php _e('斜体'); ?>', text: '<?php _e('斜体'); ?>'},
-                {name: 'quote', action: EasyMDE.toggleBlockquote, title: '<?php _e('引用'); ?>', text: '<?php _e('引用'); ?>'},
-                {name: 'code', action: EasyMDE.toggleCodeBlock, title: '<?php _e('代码'); ?>', text: '<?php _e('代码'); ?>'},
+                {name: 'bold', action: EasyMDE.toggleBold, title: '<?php _e('加粗'); ?>', className: 'fa fa-bold'},
+                {name: 'italic', action: EasyMDE.toggleItalic, title: '<?php _e('斜体'); ?>', className: 'fa fa-italic'},
+                {name: 'quote', action: EasyMDE.toggleBlockquote, title: '<?php _e('引用'); ?>', className: 'fa fa-quote-left'},
+                {name: 'code', action: EasyMDE.toggleCodeBlock, title: '<?php _e('代码'); ?>', className: 'fa fa-code'},
                 '|',
-                {name: 'link', action: EasyMDE.drawLink, title: '<?php _e('链接'); ?>', text: '<?php _e('链接'); ?>'},
-                {name: 'image', action: EasyMDE.drawImage, title: '<?php _e('图片'); ?>', text: '<?php _e('图片'); ?>'},
-                {name: 'upload-image', action: EasyMDE.drawUploadedImage, title: '<?php _e('上传图片'); ?>', text: '<?php _e('上传'); ?>'},
-                {name: 'table', action: EasyMDE.drawTable, title: '<?php _e('表格'); ?>', text: '<?php _e('表格'); ?>'},
+                {name: 'link', action: EasyMDE.drawLink, title: '<?php _e('链接'); ?>', className: 'fa fa-link'},
+                {name: 'image', action: EasyMDE.drawImage, title: '<?php _e('图片'); ?>', className: 'fa fa-image'},
+                {name: 'upload-image', action: EasyMDE.drawUploadedImage, title: '<?php _e('上传图片'); ?>', className: 'fa fa-upload'},
+                {name: 'table', action: EasyMDE.drawTable, title: '<?php _e('表格'); ?>', className: 'fa fa-table'},
                 '|',
-                {name: 'unordered-list', action: EasyMDE.toggleUnorderedList, title: '<?php _e('普通列表'); ?>', text: '<?php _e('列表'); ?>'},
-                {name: 'ordered-list', action: EasyMDE.toggleOrderedList, title: '<?php _e('数字列表'); ?>', text: '<?php _e('数字列表'); ?>'},
-                {name: 'heading', action: EasyMDE.toggleHeadingBigger, title: '<?php _e('标题'); ?>', text: '<?php _e('标题'); ?>'},
-                {name: 'horizontal-rule', action: EasyMDE.drawHorizontalRule, title: '<?php _e('分割线'); ?>', text: '<?php _e('分割线'); ?>'},
-                {name: 'more', action: insertMore, title: '<?php _e('摘要分割线'); ?>', text: '<?php _e('摘要'); ?>'},
+                {name: 'unordered-list', action: EasyMDE.toggleUnorderedList, title: '<?php _e('普通列表'); ?>', className: 'fa fa-list-ul'},
+                {name: 'ordered-list', action: EasyMDE.toggleOrderedList, title: '<?php _e('数字列表'); ?>', className: 'fa fa-list-ol'},
+                {name: 'heading', action: EasyMDE.toggleHeadingBigger, title: '<?php _e('标题'); ?>', className: 'fa fa-header'},
+                {name: 'horizontal-rule', action: EasyMDE.drawHorizontalRule, title: '<?php _e('分割线'); ?>', className: 'fa fa-minus'},
+                {name: 'more', action: insertMore, title: '<?php _e('摘要分割线'); ?>', className: 'fa fa-scissors'},
                 '|',
-                {name: 'preview', action: EasyMDE.togglePreview, title: '<?php _e('预览'); ?>', text: '<?php _e('预览'); ?>'},
-                {name: 'side-by-side', action: EasyMDE.toggleSideBySide, title: '<?php _e('分屏预览'); ?>', text: '<?php _e('分屏'); ?>'},
-                {name: 'fullscreen', action: EasyMDE.toggleFullScreen, title: '<?php _e('全屏'); ?>', text: '<?php _e('全屏'); ?>'},
+                {name: 'preview', action: EasyMDE.togglePreview, title: '<?php _e('预览'); ?>', className: 'fa fa-eye'},
+                {name: 'side-by-side', action: EasyMDE.toggleSideBySide, title: '<?php _e('分屏预览'); ?>', className: 'fa fa-columns'},
+                {name: 'fullscreen', action: EasyMDE.toggleFullScreen, title: '<?php _e('全屏'); ?>', className: 'fa fa-arrows-alt'},
                 '|',
-                {name: 'undo', action: EasyMDE.undo, title: '<?php _e('撤销'); ?>', text: '<?php _e('撤销'); ?>'},
-                {name: 'redo', action: EasyMDE.redo, title: '<?php _e('重做'); ?>', text: '<?php _e('重做'); ?>'}
+                {name: 'undo', action: EasyMDE.undo, title: '<?php _e('撤销'); ?>', className: 'fa fa-undo'},
+                {name: 'redo', action: EasyMDE.redo, title: '<?php _e('重做'); ?>', className: 'fa fa-repeat'}
             ]
         });
 
