@@ -180,8 +180,7 @@ class Router
                 $params = null;
 
                 if (!empty($route['params'])) {
-                    unset($matches[0]);
-                    $params = array_combine($route['params'], $matches);
+                    $params = array_combine($route['params'], array_slice($matches, 1));
                 }
 
                 yield [$route, $params];

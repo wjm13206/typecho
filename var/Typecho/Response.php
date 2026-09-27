@@ -200,7 +200,7 @@ class Response
 
         // set cookie
         foreach ($this->cookies as $cookie) {
-            [$key, $value, $timeout, $path, $domain, $secure, $httponly] = $cookie;
+            [$key, $value, $timeout, $path, $domain, $secure, $httponly, $samesite] = $cookie;
 
             if ($timeout > 0) {
                 $now = time();
@@ -209,7 +209,24 @@ class Response
                 $timeout = 1;
             }
 
-            setrawcookie($key, rawurlencode($value), $timeout, $path, $domain, $secure, $httponly);
+            // SameSite=None 必须配合 Secure 使用, 否则浏览器会拒收, 这里降级为 Lax
+            if (0 == strcasecmp($samesite, 'None') && !$secure) {
+                $samesite = 'Lax';
+            }
+
+            $options = [
+                'expires'  => $timeout,
+                'path'     => $path,
+                'secure'   => $secure,
+                'httponly' => $httponly,
+                'samesite' => $samesite
+            ];
+
+            if ('' !== $domain) {
+                $options['domain'] = $domain;
+            }
+
+            setrawcookie($key, rawurlencode($value), $options);
         }
     }
 
@@ -277,6 +294,7 @@ class Response
      * @param string|null $domain 域名信息
      * @param bool $secure 是否仅可通过安全的 HTTPS 连接传给客户端
      * @param bool $httponly 是否仅可通过 HTTP 协议访问
+     * @param string $samesite 防跨站请求伪造策略, 可选 Lax、Strict、None
      * @return $this
      */
     public function setCookie(
@@ -286,10 +304,11 @@ class Response
         string $path = '/',
         string $domain = '',
         bool $secure = false,
-        bool $httponly = false
+        bool $httponly = false,
+        string $samesite = 'Lax'
     ): Response {
         if (!$this->sandbox) {
-            $this->cookies[] = [$key, $value, $timeout, $path, $domain, $secure, $httponly];
+            $this->cookies[] = [$key, $value, $timeout, $path, $domain, $secure, $httponly, $samesite];
         }
 
         return $this;

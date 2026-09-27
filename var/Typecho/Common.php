@@ -77,6 +77,8 @@ namespace Typecho {
     const PLUGIN_NAMESPACE = 'TypechoPlugin';
 
     spl_autoload_register(function (string $className) {
+        static $reverseAliases = null;
+
         $isDefinedAlias = defined('__TYPECHO_CLASS_ALIASES__');
         $isNamespace = strpos($className, '\\') !== false;
         $isAlias = $isDefinedAlias && isset(__TYPECHO_CLASS_ALIASES__[$className]);
@@ -84,7 +86,8 @@ namespace Typecho {
 
         // detect if class is predefined
         if ($isNamespace) {
-            $isPlugin = strpos(ltrim($className, '\\'), PLUGIN_NAMESPACE . '\\') !== false;
+            $trimmedClassName = ltrim($className, '\\');
+            $isPlugin = strpos($trimmedClassName, PLUGIN_NAMESPACE . '\\') !== false;
 
             if ($isPlugin) {
                 $realClassName = substr($className, strlen(PLUGIN_NAMESPACE) + 1);
@@ -92,14 +95,19 @@ namespace Typecho {
                 $path = str_replace('\\', '/', $realClassName);
             } else {
                 if ($isDefinedAlias) {
-                    $alias = array_search('\\' . ltrim($className, '\\'), __TYPECHO_CLASS_ALIASES__);
+                    if (null === $reverseAliases) {
+                        $reverseAliases = array_flip(__TYPECHO_CLASS_ALIASES__);
+                    }
+
+                    $alias = $reverseAliases['\\' . $trimmedClassName] ?? null;
                 }
 
                 $alias = empty($alias) ? Common::nativeClassName($className) : $alias;
                 $path = str_replace('\\', '/', $className);
             }
         } elseif (strpos($className, '_') !== false || $isAlias) {
-            $isPlugin = !$isAlias && !preg_match("/^(Typecho|Widget|IXR)_/", $className);
+            $isPlugin = !$isAlias && 0 !== strpos($className, 'Typecho_')
+                && 0 !== strpos($className, 'Widget_') && 0 !== strpos($className, 'IXR_');
 
             if ($isPlugin) {
                 $alias = '\\TypechoPlugin\\' . str_replace('_', '\\', $className);
@@ -126,17 +134,28 @@ namespace Typecho {
 
         // load class file
         $path .= '.php';
-        $defaultFile = __TYPECHO_ROOT_DIR__ . '/var/' . $path;
 
-        if (file_exists($defaultFile) && !$isPlugin) {
-            include_once $defaultFile;
-        } else {
+        if ($isPlugin) {
             $pluginFile = __TYPECHO_ROOT_DIR__ . __TYPECHO_PLUGIN_DIR__ . '/' . $path;
 
             if (file_exists($pluginFile)) {
                 include_once $pluginFile;
             } else {
                 return;
+            }
+        } else {
+            $defaultFile = __TYPECHO_ROOT_DIR__ . '/var/' . $path;
+
+            if (file_exists($defaultFile)) {
+                include_once $defaultFile;
+            } else {
+                $pluginFile = __TYPECHO_ROOT_DIR__ . __TYPECHO_PLUGIN_DIR__ . '/' . $path;
+
+                if (file_exists($pluginFile)) {
+                    include_once $pluginFile;
+                } else {
+                    return;
+                }
             }
         }
 
@@ -333,7 +352,19 @@ EOF;
          */
         public static function nativeClassName(string $className): string
         {
-            return trim(str_replace('\\', '_', $className), '_');
+            static $cache = [];
+
+            if (isset($cache[$className])) {
+                return $cache[$className];
+            }
+
+            $result = trim(str_replace('\\', '_', $className), '_');
+
+            if (count($cache) < 2000) {
+                $cache[$className] = $result;
+            }
+
+            return $result;
         }
 
         /**

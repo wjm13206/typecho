@@ -46,6 +46,12 @@ class Cookie
     private static bool $httponly = false;
 
     /**
+     * @var string
+     * @access private
+     */
+    private static string $samesite = 'Lax';
+
+    /**
      * 获取前缀
      *
      * @access public
@@ -104,16 +110,61 @@ class Cookie
     }
 
     /**
+     * @access public
+     * @return bool
+     */
+    public static function getHttponly(): bool
+    {
+        return self::$httponly;
+    }
+
+    /**
+     * @access public
+     * @return string
+     */
+    public static function getSamesite(): string
+    {
+        return self::$samesite;
+    }
+
+    /**
      * 设置额外的选项
+     *
+     * 只覆盖传入的键, 未传入的保持原值
      *
      * @param array $options
      * @return void
      */
     public static function setOptions(array $options)
     {
-        self::$domain = $options['domain'] ?: self::$domain;
-        self::$secure = !!$options['secure'];
-        self::$httponly = !!$options['httponly'];
+        if (array_key_exists('domain', $options)) {
+            self::$domain = $options['domain'] ?: self::$domain;
+        }
+
+        if (array_key_exists('secure', $options)) {
+            self::$secure = !!$options['secure'];
+        }
+
+        if (array_key_exists('httponly', $options)) {
+            self::$httponly = !!$options['httponly'];
+        }
+
+        if (array_key_exists('samesite', $options)) {
+            self::$samesite = self::normalizeSamesite($options['samesite']);
+        }
+    }
+
+    /**
+     * 归一化 samesite 取值, 非法值回退为 Lax
+     *
+     * @param mixed $samesite
+     * @return string
+     */
+    private static function normalizeSamesite($samesite): string
+    {
+        $samesite = ucfirst(strtolower((string) $samesite));
+
+        return in_array($samesite, ['Lax', 'Strict', 'None'], true) ? $samesite : 'Lax';
     }
 
     /**
@@ -136,8 +187,10 @@ class Cookie
      * @param string $key 指定的参数
      * @param mixed $value 设置的值
      * @param integer $expire 过期时间,默认为0,表示随会话时间结束
+     * @param boolean|null $httponly 是否仅可通过 HTTP 协议访问,默认为空表示使用全局设置
+     * @param string|null $samesite 防跨站请求伪造策略,默认为空表示使用全局设置
      */
-    public static function set(string $key, $value, int $expire = 0)
+    public static function set(string $key, $value, int $expire = 0, ?bool $httponly = null, ?string $samesite = null)
     {
         $key = self::$prefix . $key;
         $_COOKIE[$key] = $value;
@@ -148,7 +201,8 @@ class Cookie
             self::$path,
             self::$domain,
             self::$secure,
-            self::$httponly
+            $httponly ?? self::$httponly,
+            $samesite ?? self::$samesite
         );
     }
 
@@ -156,15 +210,26 @@ class Cookie
      * 删除指定的COOKIE值
      *
      * @param string $key 指定的参数
+     * @param boolean|null $httponly 是否仅可通过 HTTP 协议访问,默认为空表示使用全局设置
+     * @param string|null $samesite 防跨站请求伪造策略,默认为空表示使用全局设置
      */
-    public static function delete(string $key)
+    public static function delete(string $key, ?bool $httponly = null, ?string $samesite = null)
     {
         $key = self::$prefix . $key;
         if (!isset($_COOKIE[$key])) {
             return;
         }
 
-        Response::getInstance()->setCookie($key, '', -1, self::$path, self::$domain, self::$secure, self::$httponly);
+        Response::getInstance()->setCookie(
+            $key,
+            '',
+            -1,
+            self::$path,
+            self::$domain,
+            self::$secure,
+            $httponly ?? self::$httponly,
+            $samesite ?? self::$samesite
+        );
         unset($_COOKIE[$key]);
     }
 }

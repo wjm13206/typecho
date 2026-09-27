@@ -131,7 +131,8 @@ abstract class Widget
         $request = null,
         $disableSandboxOrCallback = true
     ): Widget {
-        [$className] = explode('@', $alias);
+        $pos = strpos($alias, '@');
+        $className = false === $pos ? $alias : substr($alias, 0, $pos);
         $key = Common::nativeClassName($alias);
 
         if (isset(self::$widgetAlias[$className])) {

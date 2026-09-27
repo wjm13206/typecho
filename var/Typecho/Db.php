@@ -189,6 +189,10 @@ class Db
             throw new DbException('Missing Database Connection');
         }
 
+        if (1 === count($this->config[$op])) {
+            return $this->config[$op][0];
+        }
+
         $key = array_rand($this->config[$op]);
         return $this->config[$op][$key];
     }
@@ -300,8 +304,7 @@ class Db
     {
         $this->selectDb(self::READ);
 
-        $args = func_get_args();
-        return call_user_func_array([$this->sql(), 'select'], $args ?: ['*']);
+        return $this->sql()->select(...($ags ?: ['*']));
     }
 
     /**

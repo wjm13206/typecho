@@ -16,6 +16,8 @@ CREATE TABLE typecho_comments ( "coid" INTEGER NOT NULL PRIMARY KEY,
 CREATE INDEX typecho_comments_cid ON typecho_comments ("cid");
 CREATE INDEX typecho_comments_created ON typecho_comments ("created");
 CREATE INDEX typecho_comments_cid_status ON typecho_comments ("cid","status");
+CREATE INDEX typecho_comments_parent ON typecho_comments ("parent");
+CREATE INDEX typecho_comments_status ON typecho_comments ("status");
 
 CREATE TABLE typecho_contents ( "cid" INTEGER NOT NULL PRIMARY KEY, 
 "title" varchar(150) default NULL ,
@@ -38,6 +40,8 @@ CREATE TABLE typecho_contents ( "cid" INTEGER NOT NULL PRIMARY KEY,
 CREATE UNIQUE INDEX typecho_contents_slug ON typecho_contents ("slug");
 CREATE INDEX typecho_contents_created ON typecho_contents ("created");
 CREATE INDEX typecho_contents_type_status_created ON typecho_contents ("type","status","created");
+CREATE INDEX typecho_contents_authorId ON typecho_contents ("authorId");
+CREATE INDEX typecho_contents_parent ON typecho_contents ("parent");
 
 CREATE TABLE "typecho_fields" ("cid" INTEGER NOT NULL,
   "name" varchar(150) NOT NULL,
@@ -62,12 +66,14 @@ CREATE TABLE typecho_metas ( "mid" INTEGER NOT NULL PRIMARY KEY,
 
 CREATE INDEX typecho_metas_slug ON typecho_metas ("slug");
 CREATE INDEX typecho_metas_type_slug ON typecho_metas ("type","slug");
+CREATE INDEX typecho_metas_name ON typecho_metas ("name");
 
 CREATE TABLE typecho_options ( "name" varchar(32) NOT NULL , 
 "user" int(10) NOT NULL default '0' , 
 "value" text );
 
 CREATE UNIQUE INDEX typecho_options_name_user ON typecho_options ("name", "user");
+CREATE INDEX typecho_options_user ON typecho_options ("user");
 
 CREATE TABLE typecho_relationships ( "cid" int(10) NOT NULL , 
 "mid" int(10) NOT NULL );
@@ -89,3 +95,4 @@ CREATE TABLE typecho_users ( "uid" INTEGER NOT NULL PRIMARY KEY,
 
 CREATE UNIQUE INDEX typecho_users_name ON typecho_users ("name");
 CREATE UNIQUE INDEX typecho_users_mail ON typecho_users ("mail");
+CREATE INDEX typecho_users_screenName ON typecho_users ("screenName");

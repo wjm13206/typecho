@@ -35,7 +35,9 @@ CREATE TABLE `typecho_comments` (
   PRIMARY KEY  (`coid`),
   KEY `cid` (`cid`),
   KEY `created` (`created`),
-  KEY `cid_status` (`cid`,`status`)
+  KEY `cid_status` (`cid`,`status`),
+  KEY `parent` (`parent`),
+  KEY `status` (`status`)
 ) ENGINE=%engine%  DEFAULT CHARSET=%charset%;
 
 -- --------------------------------------------------------
@@ -65,7 +67,9 @@ CREATE TABLE `typecho_contents` (
   PRIMARY KEY  (`cid`),
   UNIQUE KEY `slug` (`slug`),
   KEY `created` (`created`),
-  KEY `type_status_created` (`type`,`status`,`created`)
+  KEY `type_status_created` (`type`,`status`,`created`),
+  KEY `authorId` (`authorId`),
+  KEY `parent` (`parent`)
 ) ENGINE=%engine%  DEFAULT CHARSET=%charset%;
 
 -- --------------------------------------------------------
@@ -103,7 +107,8 @@ CREATE TABLE `typecho_metas` (
   `parent` int(10) unsigned default '0',
   PRIMARY KEY  (`mid`),
   KEY `slug` (`slug`),
-  KEY `type_slug` (`type`,`slug`)
+  KEY `type_slug` (`type`,`slug`),
+  KEY `name` (`name`)
 ) ENGINE=%engine%  DEFAULT CHARSET=%charset%;
 
 -- --------------------------------------------------------
@@ -116,7 +121,8 @@ CREATE TABLE `typecho_options` (
   `name` varchar(32) NOT NULL,
   `user` int(10) unsigned NOT NULL default '0',
   `value` text,
-  PRIMARY KEY  (`name`,`user`)
+  PRIMARY KEY  (`name`,`user`),
+  KEY `user` (`user`)
 ) ENGINE=%engine% DEFAULT CHARSET=%charset%;
 
 -- --------------------------------------------------------
@@ -152,5 +158,6 @@ CREATE TABLE `typecho_users` (
   `authCode` varchar(64) default NULL,
   PRIMARY KEY  (`uid`),
   UNIQUE KEY `name` (`name`),
-  UNIQUE KEY `mail` (`mail`)
+  UNIQUE KEY `mail` (`mail`),
+  KEY `screenName` (`screenName`)
 ) ENGINE=%engine%  DEFAULT CHARSET=%charset%;

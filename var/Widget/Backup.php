@@ -376,8 +376,8 @@ class Backup extends BaseOptions implements ActionInterface
         $user['activated'] = $this->options->time;
         $user['logged'] = $user['activated'];
 
-        Cookie::set('__typecho_uid', $user['uid']);
-        Cookie::set('__typecho_authCode', Common::hash($user['authCode']));
+        Cookie::set('__typecho_uid', $user['uid'], 0, true);
+        Cookie::set('__typecho_authCode', Common::hash($user['authCode']), 0, true);
         $this->login = true;
     }
 }

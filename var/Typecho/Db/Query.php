@@ -23,6 +23,16 @@ class Query
     /** 数据库关键字 */
     private const KEYWORDS = '*PRIMARY|AND|OR|LIKE|ILIKE|BINARY|BY|DISTINCT|AS|IN|NOT|IS|NULL';
 
+    /** 关键字精确匹配集合,避免 strpos 子串误判且更快 */
+    private const KEYWORD_SET = [
+        '*' => 1, 'PRIMARY' => 1, 'AND' => 1, 'OR' => 1, 'LIKE' => 1,
+        'ILIKE' => 1, 'BINARY' => 1, 'BY' => 1, 'DISTINCT' => 1, 'AS' => 1,
+        'IN' => 1, 'NOT' => 1, 'IS' => 1, 'NULL' => 1,
+    ];
+
+    /** filterColumn 结果缓存,同一请求内相同片段复用,命中 N+1 重复查询 */
+    private static array $filterColumnCache = [];
+
     /**
      * 默认字段
      *
@@ -165,6 +175,11 @@ class Query
      */
     private function filterColumn(string $str): string
     {
+        $cacheKey = get_class($this->adapter) . "\0" . $this->prefix . "\0" . $str;
+        if (isset(self::$filterColumnCache[$cacheKey])) {
+            return self::$filterColumnCache[$cacheKey];
+        }
+
         $str = $str . ' 0';
         $length = strlen($str);
         $lastIsAlnum = false;
@@ -176,11 +191,11 @@ class Query
         for ($i = 0; $i < $length; $i++) {
             $cha = $str[$i];
 
-            if (ctype_alnum($cha) || false !== strpos('_*', $cha)) {
+            if (ctype_alnum($cha) || '_' === $cha || '*' === $cha) {
                 if (!$lastIsAlnum) {
                     if (
                         $quotes > 0 && !ctype_digit($word) && '.' != $split
-                        && false === strpos(self::KEYWORDS, strtoupper($word))
+                        && !isset(self::KEYWORD_SET[strtoupper($word)])
                     ) {
                         $word = $this->adapter->quoteColumn($word);
                     } elseif ('.' == $split && 'table' == $word) {
@@ -211,6 +226,10 @@ class Query
                 $split .= $cha;
                 $lastIsAlnum = false;
             }
+        }
+
+        if (count(self::$filterColumnCache) < 2000) {
+            self::$filterColumnCache[$cacheKey] = $result;
         }
 
         return $result;
@@ -506,6 +525,10 @@ class Query
      */
     public function prepare(string $query): string
     {
+        if (empty($this->params)) {
+            return $query;
+        }
+
         $params = $this->params;
         $adapter = $this->adapter;
 

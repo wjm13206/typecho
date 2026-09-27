@@ -200,8 +200,8 @@ class User extends Users
             bin2hex(openssl_random_pseudo_bytes(16)) : sha1(Common::randString(20));
         $user['authCode'] = $authCode;
 
-        Cookie::set('__typecho_uid', $user['uid'], $expire);
-        Cookie::set('__typecho_authCode', Common::hash($authCode), $expire);
+        Cookie::set('__typecho_uid', $user['uid'], $expire, true);
+        Cookie::set('__typecho_authCode', Common::hash($authCode), $expire, true);
 
         //更新最后登录时间以及验证码
         $this->db->query($this->db
