@@ -222,9 +222,11 @@ class XmlRpc extends Contents implements ActionInterface, Hook
                 if ($this->user->pass($accesses[$methodName] ?? 'contributor', true)) {
                     $this->user->execute();
                 } else {
+                    sleep(3);
                     throw new Exception(_t('权限不足'), 403);
                 }
             } else {
+                sleep(3);
                 throw new Exception(_t('无法登录, 密码错误'), 403);
             }
         }
