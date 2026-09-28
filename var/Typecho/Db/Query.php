@@ -395,7 +395,12 @@ class Query
             $this->sqlPreBuild['order'] .= ', ';
         }
 
-        $this->sqlPreBuild['order'] .= $this->filterColumn($orderBy) . (empty($sort) ? null : ' ' . $sort);
+        $sort = strtoupper(trim($sort));
+        if (!in_array($sort, [Db::SORT_ASC, Db::SORT_DESC], true)) {
+            $sort = Db::SORT_ASC;
+        }
+
+        $this->sqlPreBuild['order'] .= $this->filterColumn($orderBy) . ' ' . $sort;
         return $this;
     }
 
