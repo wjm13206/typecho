@@ -30,17 +30,17 @@ include 'menu.php';
                         </thead>
                         <tbody>
                         <?php while ($activatedPlugins->next()): ?>
-                            <tr id="plugin-<?php $activatedPlugins->name(); ?>">
-                                <td><?php $activatedPlugins->title(); ?>
+                            <tr id="plugin-<?php echo htmlspecialchars($activatedPlugins->name ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+                                <td><?php echo htmlspecialchars($activatedPlugins->title ?? '', ENT_QUOTES, 'UTF-8'); ?>
                                     <?php if (!$activatedPlugins->dependence): ?>
                                         <i class="i-delete"
-                                           title="<?php _e('%s 无法在此版本的typecho下正常工作', $activatedPlugins->title); ?>"></i>
+                                           title="<?php echo htmlspecialchars(sprintf(_t('%s 无法在此版本的typecho下正常工作'), $activatedPlugins->title), ENT_QUOTES, 'UTF-8'); ?>"></i>
                                     <?php endif; ?>
                                 </td>
-                                <td><?php $activatedPlugins->description(); ?></td>
-                                <td class="kit-hidden-mb"><?php $activatedPlugins->version(); ?></td>
-                                <td class="kit-hidden-mb"><?php echo empty($activatedPlugins->homepage) ? $activatedPlugins->author : '<a href="' . $activatedPlugins->homepage
-                                        . '">' . $activatedPlugins->author . '</a>'; ?></td>
+                                <td><?php echo htmlspecialchars($activatedPlugins->description ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td class="kit-hidden-mb"><?php echo htmlspecialchars($activatedPlugins->version ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td class="kit-hidden-mb"><?php echo empty($activatedPlugins->homepage) ? htmlspecialchars($activatedPlugins->author ?? '', ENT_QUOTES, 'UTF-8') : '<a href="' . htmlspecialchars(\Typecho\Common::safeUrl($activatedPlugins->homepage), ENT_QUOTES, 'UTF-8')
+                                        . '">' . htmlspecialchars($activatedPlugins->author ?? '', ENT_QUOTES, 'UTF-8') . '</a>'; ?></td>
                                 <td>
                                     <?php if ($activatedPlugins->activate || $activatedPlugins->deactivate || $activatedPlugins->config || $activatedPlugins->personalConfig): ?>
                                         <?php if ($activatedPlugins->config): ?>
@@ -96,12 +96,12 @@ include 'menu.php';
                         <tbody>
                         <?php if ($deactivatedPlugins->have()): ?>
                             <?php while ($deactivatedPlugins->next()): ?>
-                                <tr id="plugin-<?php $deactivatedPlugins->name(); ?>">
-                                    <td><?php $deactivatedPlugins->title(); ?></td>
-                                    <td><?php $deactivatedPlugins->description(); ?></td>
-                                    <td class="kit-hidden-mb"><?php $deactivatedPlugins->version(); ?></td>
-                                    <td class="kit-hidden-mb"><?php echo empty($deactivatedPlugins->homepage) ? $deactivatedPlugins->author : '<a href="' . $deactivatedPlugins->homepage
-                                            . '">' . $deactivatedPlugins->author . '</a>'; ?></td>
+                                <tr id="plugin-<?php echo htmlspecialchars($deactivatedPlugins->name ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+                                    <td><?php echo htmlspecialchars($deactivatedPlugins->title ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                    <td><?php echo htmlspecialchars($deactivatedPlugins->description ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                    <td class="kit-hidden-mb"><?php echo htmlspecialchars($deactivatedPlugins->version ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                    <td class="kit-hidden-mb"><?php echo empty($deactivatedPlugins->homepage) ? htmlspecialchars($deactivatedPlugins->author ?? '', ENT_QUOTES, 'UTF-8') : '<a href="' . htmlspecialchars(\Typecho\Common::safeUrl($deactivatedPlugins->homepage), ENT_QUOTES, 'UTF-8')
+                                            . '">' . htmlspecialchars($deactivatedPlugins->author ?? '', ENT_QUOTES, 'UTF-8') . '</a>'; ?></td>
                                     <td>
                                         <a href="<?php $security->index('/action/plugins-edit?activate=' . $deactivatedPlugins->name); ?>"><?php _e('启用'); ?></a>
                                     </td>
