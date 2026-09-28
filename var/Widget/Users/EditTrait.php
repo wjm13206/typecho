@@ -87,8 +87,12 @@ trait EditTrait
      */
     protected function getPageOffset(string $column, int $offset, ?string $group = null, int $pageSize = 20): int
     {
+        if (!in_array($column, ['uid'], true)) {
+            $column = 'uid';
+        }
+
         $select = $this->db->select(['COUNT(uid)' => 'num'])->from('table.users')
-            ->where("table.users.{$column} > {$offset}");
+            ->where("table.users.{$column} > ?", $offset);
 
         if (!empty($group)) {
             $select->where('table.users.group = ?', $group);
