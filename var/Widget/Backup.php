@@ -206,12 +206,27 @@ class Backup extends BaseOptions implements ActionInterface
                 $this->response->goBack();
             }
 
-            $path = __TYPECHO_BACKUP_DIR__ . '/' . $this->request->get('file');
-
-            if (!file_exists($path)) {
+            $file = basename((string)$this->request->get('file'));
+            if ('' === $file || !preg_match("/^[a-z0-9_.\-]+\.dat$/i", $file)) {
                 Notice::alloc()->set(_t('备份文件不存在'), 'error');
                 $this->response->goBack();
             }
+
+            $path = __TYPECHO_BACKUP_DIR__ . '/' . $file;
+
+            if (!is_file($path)) {
+                Notice::alloc()->set(_t('备份文件不存在'), 'error');
+                $this->response->goBack();
+            }
+
+            // 防止符号链接与目录穿越, 确保落在备份目录内
+            $realBase = realpath(__TYPECHO_BACKUP_DIR__);
+            $realPath = realpath($path);
+            if (false === $realBase || false === $realPath || 0 !== strpos($realPath, $realBase)) {
+                Notice::alloc()->set(_t('备份文件不存在'), 'error');
+                $this->response->goBack();
+            }
+            $path = $realPath;
         }
 
         $this->extractData($path);
