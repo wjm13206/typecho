@@ -62,7 +62,13 @@ class Security extends Base
      */
     public function protect()
     {
-        if ($this->enabled && $this->request->get('_') != $this->getToken($this->request->getReferer())) {
+        if (!$this->enabled) {
+            return;
+        }
+
+        $expected = $this->getToken($this->request->getReferer());
+        $provided = (string)$this->request->get('_');
+        if ('' === $provided || !hash_equals($expected, $provided)) {
             $this->response->goBack();
         }
     }
@@ -75,7 +81,7 @@ class Security extends Base
      */
     public function getToken(?string $suffix): string
     {
-        return md5($this->token . '&' . $suffix);
+        return hash_hmac('sha256', $this->token . '&' . $suffix, $this->options->secret);
     }
 
     /**
