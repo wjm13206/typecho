@@ -497,10 +497,33 @@ EOF;
                     $parsedAttrs = [];
                     $tag = strtolower($matches[1]);
 
+                    $urlAttrs = ['href', 'src', 'action', 'formaction', 'cite', 'data', 'background', 'xlink:href'];
                     foreach ($attrs as $key => $val) {
-                        if (in_array($key, $allowableAttributes[$tag])) {
-                            $parsedAttrs[] = " {$key}" . (empty($val) ? '' : "={$val}");
+                        $lowerKey = strtolower($key);
+                        if (!isset($allowableAttributes[$tag]) || !in_array($lowerKey, $allowableAttributes[$tag])) {
+                            continue;
                         }
+
+                        // 禁止事件处理器、style 与 formaction 等可执行属性
+                        if (0 === strpos($lowerKey, 'on') || 'style' === $lowerKey || 'formaction' === $lowerKey) {
+                            continue;
+                        }
+
+                        if ('' !== $val && in_array($lowerKey, $urlAttrs, true)) {
+                            $raw = trim($val, "\"' \t\n\r");
+                            $raw = html_entity_decode($raw, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                            $raw = preg_replace('/[\x00-\x20]+/', '', $raw);
+                            if (preg_match('/^(javascript|data|vbscript|file|blob):/i', ltrim($raw))) {
+                                continue;
+                            }
+                            // 统一用 safeUrl 清洗, 非法协议会回退为 /
+                            $cleaned = self::safeUrl(trim($val, "\"'"));
+                            $quote = '"' === ($val[0] ?? '') ? '"' : (("'" === ($val[0] ?? '')) ? "'" : '"');
+                            $parsedAttrs[] = " {$lowerKey}={$quote}" . str_replace([$quote, '<', '>'], '', $cleaned) . $quote;
+                            continue;
+                        }
+
+                        $parsedAttrs[] = " {$lowerKey}" . (empty($val) ? '' : "={$val}");
                     }
 
                     return '<' . $tag . implode('', $parsedAttrs) . '>';
@@ -846,7 +869,11 @@ EOF;
             $result = '';
             $max = strlen($chars) - 1;
             for ($i = 0; $i < $length; $i++) {
-                $result .= $chars[rand(0, $max)];
+                try {
+                    $result .= $chars[random_int(0, $max)];
+                } catch (\Exception $e) {
+                    $result .= $chars[rand(0, $max)];
+                }
             }
             return $result;
         }
@@ -1057,30 +1084,74 @@ EOF;
          */
         public static function checkSafeHost(string $host): bool
         {
-            if ('localhost' == $host) {
+            $host = strtolower(trim($host, " \t\n\r\0\x0B."));
+            if ('' === $host || 'localhost' === $host) {
                 return false;
             }
 
-            $address = gethostbyname($host);
-            $inet = inet_pton($address);
-
-            if (false === $inet) {
-                // 有可能是ipv6的地址
-                $records = dns_get_record($host, DNS_AAAA);
-
-                if (empty($records)) {
-                    return false;
+            // 拦截十进制/八进制/十六进制 IP 写法与 0.0.0.0
+            if (preg_match("/^(0x[0-9a-f]+|\d+|[0-7]+)([\.](0x[0-9a-f]+|\d+|[0-7]+)){0,3}$/i", $host)) {
+                $long = ip2long($host);
+                if (false !== $long) {
+                    $address = long2ip($long);
+                    return filter_var(
+                        $address,
+                        FILTER_VALIDATE_IP,
+                        FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+                    ) !== false;
                 }
-
-                $address = $records[0]['ipv6'];
-                $inet = inet_pton($address);
+                return false;
             }
 
-            return filter_var(
-                $address,
-                FILTER_VALIDATE_IP,
-                FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
-            ) !== false;
+            if (filter_var($host, FILTER_VALIDATE_IP)) {
+                return filter_var(
+                    $host,
+                    FILTER_VALIDATE_IP,
+                    FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+                ) !== false;
+            }
+
+            $addresses = gethostbynamel($host);
+            if (empty($addresses)) {
+                $address = gethostbyname($host);
+                if ($address === $host) {
+                    // 有可能是ipv6的地址
+                    $records = dns_get_record($host, DNS_AAAA);
+
+                    if (empty($records)) {
+                        return false;
+                    }
+
+                    foreach ($records as $record) {
+                        if (
+                            filter_var(
+                                $record['ipv6'],
+                                FILTER_VALIDATE_IP,
+                                FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+                            ) === false
+                        ) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+                $addresses = [$address];
+            }
+
+            // 全部 A 记录必须均为公网地址, 防 DNS Rebinding
+            foreach ($addresses as $address) {
+                if (
+                    filter_var(
+                        $address,
+                        FILTER_VALIDATE_IP,
+                        FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+                    ) === false
+                ) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /**
