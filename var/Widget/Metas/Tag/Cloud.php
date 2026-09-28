@@ -28,8 +28,15 @@ class Cloud extends Metas
     public function execute()
     {
         $this->parameter->setDefault(['sort' => 'count', 'ignoreZeroCount' => false, 'desc' => true, 'limit' => 0]);
+
+        $allowedSorts = ['count', 'mid', 'name', 'slug', 'order'];
+        $sort = $this->parameter->sort;
+        if (!in_array($sort, $allowedSorts, true)) {
+            $sort = 'count';
+        }
+
         $select = $this->select()->where('type = ?', 'tag')
-            ->order($this->parameter->sort, $this->parameter->desc ? Db::SORT_DESC : Db::SORT_ASC);
+            ->order($sort, $this->parameter->desc ? Db::SORT_DESC : Db::SORT_ASC);
 
         /** 忽略零数量 */
         if ($this->parameter->ignoreZeroCount) {
