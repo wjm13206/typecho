@@ -138,6 +138,7 @@ class Ajax extends BaseOptions implements ActionInterface
     public function editorResize()
     {
         $this->user->pass('contributor');
+        $this->security->protect();
         $size = $this->request->filter('int')->get('size');
 
         if (
