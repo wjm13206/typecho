@@ -1013,7 +1013,7 @@ class Archive extends Contents
         }
 
         $allows = self::pluginHandle()->filter('headerOptions', $allows, $this);
-        $title = (empty($this->archiveTitle) ? '' : $this->archiveTitle . ' &raquo; ') . $this->options->title;
+        $title = (empty($this->archiveTitle) ? '' : htmlspecialchars($this->archiveTitle) . ' &raquo; ') . htmlspecialchars($this->options->title ?? '');
 
         $header = ($this->is('single') && !$this->is('index')) ? '<link rel="canonical" href="' . $this->archiveUrl . '" />' . "\n" : '';
 
@@ -1283,7 +1283,7 @@ EOF;
                 $define = $defines[$this->archiveType];
             }
 
-            echo $before . sprintf($define, $this->archiveTitle) . $end;
+            echo $before . sprintf($define, htmlspecialchars($this->archiveTitle)) . $end;
         }
     }
 
@@ -1305,7 +1305,17 @@ EOF;
      */
     public function need(string $fileName)
     {
-        require $this->themeDir . $fileName;
+        $fileName = str_replace('\\', '/', $fileName);
+        if (false !== strpos($fileName, '..') || false !== strpos($fileName, "\0")) {
+            return;
+        }
+        $path = $this->themeDir . $fileName;
+        $realBase = realpath($this->themeDir);
+        $realPath = realpath($path);
+        if (false === $realBase || false === $realPath || 0 !== strpos($realPath, $realBase)) {
+            return;
+        }
+        require $path;
     }
 
     /**
@@ -1325,8 +1335,22 @@ EOF;
 
         //~ 自定义模板
         if (!empty($this->themeFile)) {
-            if (file_exists($this->themeDir . $this->themeFile)) {
-                $valid = true;
+            $customFile = str_replace('\\', '/', (string)$this->themeFile);
+            if (
+                false === strpos($customFile, '..') && false === strpos($customFile, "\0")
+                && preg_match("/^[a-z0-9_\-\/]+\.php$/i", $customFile)
+            ) {
+                $candidate = $this->themeDir . $customFile;
+                $realBase = realpath($this->themeDir);
+                $realPath = realpath($candidate);
+                if (false !== $realBase && false !== $realPath && 0 === strpos($realPath, $realBase)) {
+                    if (file_exists($candidate)) {
+                        $valid = true;
+                    }
+                }
+            }
+            if (!$valid) {
+                $this->themeFile = '';
             }
         }
 
