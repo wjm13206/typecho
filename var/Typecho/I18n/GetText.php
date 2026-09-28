@@ -361,14 +361,24 @@ class GetText
     private function selectString(int $n): int
     {
         $string = $this->getPluralForms();
+        // 语言包 plural-forms 仅允许数字、n 与三元/逻辑运算, 防止恶意 MO 注入代码执行
+        if (!preg_match("/^[n0-9\s\?\:\(\)\!\=\<\>\&\|\%\+\-\*\/npluralsplural;]+$/", $string)) {
+            $string = "nplurals=2; plural=n == 1 ? 0 : 1;";
+        }
         $string = str_replace('nplurals', "\$total", $string);
         $string = str_replace("n", $n, $string);
         $string = str_replace('plural', "\$plural", $string);
 
-        $total = 0;
-        $plural = 0;
+        // 二次校验替换后的代码仅含安全字符
+        if (!preg_match("/^[\$0-9\s\?\:\(\)\!\=\<\>\&\|\%\+\-\*\/;totalplural]+$/", $string)) {
+            $total = 2;
+            $plural = ($n == 1 ? 0 : 1);
+        } else {
+            $total = 0;
+            $plural = 0;
 
-        eval("$string");
+            eval("$string");
+        }
         if ($plural >= $total) {
             $plural = $total - 1;
         }
