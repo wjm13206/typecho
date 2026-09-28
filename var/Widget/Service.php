@@ -104,6 +104,18 @@ class Service extends BaseOptions implements ActionInterface
                     }
 
                     if (!empty($xmlrpcUrl)) {
+                        // 第二阶段中继请求必须同样约束协议与目标主机, 否则可借 pingback 发现机制 SSRF 内网/gopher 协议
+                        $xmlrpcParts = parse_url($xmlrpcUrl);
+                        $xmlrpcScheme = strtolower($xmlrpcParts['scheme'] ?? '');
+
+                        if (!in_array($xmlrpcScheme, ['http', 'https'], true)) {
+                            continue;
+                        }
+
+                        if (empty($xmlrpcParts['host']) || !Common::checkSafeHost($xmlrpcParts['host'])) {
+                            continue;
+                        }
+
                         $response['pingback'][] = $url;
 
                         try {
