@@ -306,11 +306,18 @@ class Profile extends Users implements ActionInterface
 
         $password = Common::hashPassword($this->request->password);
 
+        // 改密即轮换 authCode, 使其他会话/被盗 Cookie 失效
+        $newAuthCode = function_exists('openssl_random_pseudo_bytes') ?
+            bin2hex(openssl_random_pseudo_bytes(16)) : sha1(Common::randString(20));
+
         /** 更新数据 */
         $this->update(
-            ['password' => $password],
+            ['password' => $password, 'authCode' => $newAuthCode],
             $this->db->sql()->where('uid = ?', $this->user->uid)
         );
+
+        // 刷新当前会话 Cookie, 防止改密后被登出
+        \Typecho\Cookie::set('__typecho_authCode', Common::hash($newAuthCode), 0, true);
 
         /** 设置高亮 */
         Notice::alloc()->highlight('user-' . $this->user->uid);
