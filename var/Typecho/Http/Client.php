@@ -293,6 +293,12 @@ class Client
         curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $this->method);
 
+        // 纵深防御: 仅允许 HTTP/HTTPS 协议, 禁止 gopher/dict/file 等危险协议
+        if (defined('CURLPROTO_HTTP') && defined('CURLPROTO_HTTPS')) {
+            curl_setopt($ch, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+            curl_setopt($ch, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+        }
+
         if (isset($this->agent)) {
             curl_setopt($ch, CURLOPT_USERAGENT, $this->agent);
         }
