@@ -102,6 +102,15 @@ class Edit extends Options implements ActionInterface
      */
     public function editThemeFile(string $theme, string $file)
     {
+        // 文件名仅允许主题目录内的 php/js/css, 禁止穿越
+        $file = str_replace('\\', '/', $file);
+        if (false !== strpos($file, '..') || false !== strpos($file, "\0") || '' === trim($file)) {
+            throw new Exception(_t('您编辑的文件不存在'));
+        }
+        if (!preg_match("/^[a-z0-9_.\-\/]+\.(php|js|css)$/i", ltrim($file, '/'))) {
+            throw new Exception(_t('您编辑的文件不存在'));
+        }
+
         $path = $this->options->themeFile($theme, $file);
 
         if (
