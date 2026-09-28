@@ -724,8 +724,12 @@ trait EditTrait
         int $authorId = 0,
         int $pageSize = 20
     ): int {
+        if (!in_array($column, ['cid'], true)) {
+            $column = 'cid';
+        }
+
         $select = $this->db->select(['COUNT(table.contents.cid)' => 'num'])->from('table.contents')
-            ->where("table.contents.{$column} > {$offset}")
+            ->where("table.contents.{$column} > ?", $offset)
             ->where(
                 "table.contents.type = ? OR (table.contents.type = ? AND table.contents.parent = ?)",
                 $type,
