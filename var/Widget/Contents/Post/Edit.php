@@ -312,6 +312,14 @@ class Edit extends Contents implements ActionInterface
         $deleteCount = 0;
 
         foreach ($posts as $post) {
+            // 越权修复: 仅允许删除自己有写权限文章的修订版
+            $condition = $this->db->sql()->where('cid = ?', $post);
+            if (!$this->isWriteable(clone $condition)) {
+                unset($condition);
+                continue;
+            }
+            unset($condition);
+
             /** 删除草稿 */
             $draft = $this->db->fetchRow($this->db->select('cid')
                 ->from('table.contents')
