@@ -81,6 +81,10 @@ class Service extends BaseOptions implements ActionInterface
                     continue;
                 }
 
+                if (!empty($urlPart['host']) && !Common::checkSafeHost($urlPart['host'])) {
+                    continue;
+                }
+
                 $spider = Client::get();
 
                 if ($spider) {
@@ -121,6 +125,11 @@ class Service extends BaseOptions implements ActionInterface
             $links = $data['trackback'];
 
             foreach ($links as $url) {
+                $urlPart = parse_url($url);
+                if (!empty($urlPart['host']) && !Common::checkSafeHost($urlPart['host'])) {
+                    continue;
+                }
+
                 $client = Client::get();
                 $response['trackback'][] = $url;
 
