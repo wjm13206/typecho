@@ -191,7 +191,22 @@ class Options extends Base
      */
     public function themeFile(string $theme, string $file = ''): string
     {
-        return __TYPECHO_ROOT_DIR__ . __TYPECHO_THEME_DIR__ . '/' . trim($theme, './') . '/' . trim($file, './');
+        $theme = trim(str_replace('\\', '/', $theme));
+        $theme = implode('/', array_filter(explode('/', $theme), function ($part) {
+            return '' !== $part && '.' !== $part && '..' !== $part;
+        }));
+        // 主题名仅允许单级目录, 防止穿越
+        if (false !== strpos($theme, '/')) {
+            $theme = basename($theme);
+        }
+
+        $file = trim(str_replace('\\', '/', $file));
+        $fileParts = array_filter(explode('/', $file), function ($part) {
+            return '' !== $part && '.' !== $part && '..' !== $part;
+        });
+        $file = implode('/', $fileParts);
+
+        return __TYPECHO_ROOT_DIR__ . __TYPECHO_THEME_DIR__ . '/' . trim($theme, './') . ('' === $file ? '' : '/' . trim($file, './'));
     }
 
     /**
@@ -767,6 +782,9 @@ class Options extends Base
     private function tryDeserialize(string $value)
     {
         $isSerialized = strpos($value, 'a:') === 0 || $value === 'b:0;';
-        return $isSerialized ? @unserialize($value) : json_decode($value, true);
+        if ($isSerialized) {
+            return @unserialize($value, ['allowed_classes' => false]);
+        }
+        return json_decode($value, true);
     }
 }
