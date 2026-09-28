@@ -126,6 +126,23 @@ class User extends Users
             return;
         }
 
+        // 注销即轮换服务端凭证, 使被盗 Cookie 立即失效
+        // 注意: 不可调用 hasLogin(), 避免与 hasLogin 失败路径中的 logout 调用形成互递归
+        try {
+            $cookieUid = Cookie::get('__typecho_uid');
+            if (null !== $cookieUid) {
+                $newAuthCode = function_exists('openssl_random_pseudo_bytes') ?
+                    bin2hex(openssl_random_pseudo_bytes(16)) : sha1(Common::randString(20));
+                $this->db->query($this->db
+                    ->update('table.users')
+                    ->rows(['authCode' => $newAuthCode])
+                    ->where('uid = ?', intval($cookieUid)));
+            }
+        } catch (\Exception $e) {
+            // 忽略轮换失败, 仍继续清除 Cookie
+        }
+
+        $this->hasLogin = false;
         Cookie::delete('__typecho_uid');
         Cookie::delete('__typecho_authCode');
     }
@@ -172,6 +189,21 @@ class User extends Users
         }
 
         if ($hashValidate) {
+            // 老弱哈希(MD5/$T$)登录成功后自动升级为 bcrypt, 缩小拖库影响
+            if (
+                !$hashPluggable && isset($user['password'])
+                && (0 !== strpos((string)$user['password'], '$2y$') && 0 !== strpos((string)$user['password'], '$argon2'))
+            ) {
+                try {
+                    $this->db->query($this->db
+                        ->update('table.users')
+                        ->rows(['password' => Common::hashPassword($password)])
+                        ->where('uid = ?', $user['uid']));
+                } catch (\Exception $e) {
+                    // 忽略升级失败, 不影响登录
+                }
+            }
+
             if (!$temporarily) {
                 $this->commitLogin($user, $expire);
             }
