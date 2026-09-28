@@ -31,7 +31,15 @@ class Related extends Contents
         $this->parameter->setDefault('limit=5');
 
         if ($this->parameter->tags) {
-            $tagsGroup = implode(',', array_column($this->parameter->tags, 'mid'));
+            $mids = array_map('intval', array_column($this->parameter->tags, 'mid'));
+            $mids = array_values(array_filter($mids, function ($mid) {
+                return $mid > 0;
+            }));
+
+            if (empty($mids)) {
+                return;
+            }
+
             $this->db->fetchAll($this->select(
                 'DISTINCT table.contents.cid',
                 'table.contents.title',
@@ -51,7 +59,7 @@ class Related extends Contents
                 'table.contents.allowFeed'
             )
                 ->join('table.relationships', 'table.contents.cid = table.relationships.cid')
-                ->where('table.relationships.mid IN (' . $tagsGroup . ')')
+                ->where('table.relationships.mid IN ?', $mids)
                 ->where('table.contents.cid <> ?', $this->parameter->cid)
                 ->where('table.contents.status = ?', 'publish')
                 ->where('table.contents.password IS NULL')
