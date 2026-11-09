@@ -316,8 +316,8 @@ class Profile extends Users implements ActionInterface
             $this->db->sql()->where('uid = ?', $this->user->uid)
         );
 
-        // 刷新当前会话 Cookie, 防止改密后被登出
-        \Typecho\Cookie::set('__typecho_authCode', Common::hash($newAuthCode), 0, true);
+        /** 刷新当前会话 Cookie, 防止改密后被登出 */
+        \Typecho\Cookie::set('__typecho_authCode', Common::hash($newAuthCode), 0, null, true);
 
         /** 设置高亮 */
         Notice::alloc()->highlight('user-' . $this->user->uid);

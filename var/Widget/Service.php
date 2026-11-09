@@ -88,8 +88,13 @@ class Service extends BaseOptions implements ActionInterface
                 $spider = Client::get();
 
                 if ($spider) {
-                    $spider->setTimeout(10)
-                        ->send($url);
+                    try {
+                        $spider->setTimeout(10)
+                            ->setSafeMode()
+                            ->send($url);
+                    } catch (Client\Exception $e) {
+                        continue;
+                    }
 
                     if (!($xmlrpcUrl = $spider->getResponseHeader('x-pingback'))) {
                         if (
@@ -119,7 +124,8 @@ class Service extends BaseOptions implements ActionInterface
                         $response['pingback'][] = $url;
 
                         try {
-                            $xmlrpc = new \IXR\Client($xmlrpcUrl);
+                            /** 发现的 XML-RPC 地址同样不可信, 只连接校验过的公网地址 */
+                            $xmlrpc = new \IXR\Client($xmlrpcUrl, null, true);
                             $xmlrpc->pingback->ping($permalink, $url);
                             unset($xmlrpc);
                         } catch (\IXR\Exception $e) {
@@ -148,6 +154,7 @@ class Service extends BaseOptions implements ActionInterface
                 if ($client) {
                     try {
                         $client->setTimeout(5)
+                            ->setSafeMode()
                             ->setData([
                                 'blog_name' => $this->options->title . ' &raquo ' . $title,
                                 'url' => $permalink,

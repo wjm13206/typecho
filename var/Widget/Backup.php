@@ -384,15 +384,14 @@ class Backup extends BaseOptions implements ActionInterface
     private function reLogin(&$user)
     {
         if (empty($user['authCode'])) {
-            $user['authCode'] = function_exists('openssl_random_pseudo_bytes') ?
-                bin2hex(openssl_random_pseudo_bytes(16)) : sha1(Common::randString(20));
+            $user['authCode'] = bin2hex(random_bytes(16));
         }
 
         $user['activated'] = $this->options->time;
         $user['logged'] = $user['activated'];
 
-        Cookie::set('__typecho_uid', $user['uid'], 0, true);
-        Cookie::set('__typecho_authCode', Common::hash($user['authCode']), 0, true);
+        Cookie::set('__typecho_uid', $user['uid'], 0, null, true);
+        Cookie::set('__typecho_authCode', Common::hash($user['authCode']), 0, null, true);
         $this->login = true;
     }
 }

@@ -49,7 +49,7 @@ class Cookie
      * @var string
      * @access private
      */
-    private static string $samesite = 'Lax';
+    private static string $sameSite = 'Lax';
 
     /**
      * 获取前缀
@@ -124,7 +124,7 @@ class Cookie
      */
     public static function getSamesite(): string
     {
-        return self::$samesite;
+        return self::$sameSite;
     }
 
     /**
@@ -150,7 +150,7 @@ class Cookie
         }
 
         if (array_key_exists('samesite', $options)) {
-            self::$samesite = self::normalizeSamesite($options['samesite']);
+            self::$sameSite = self::normalizeSamesite($options['samesite']);
         }
     }
 
@@ -187,10 +187,10 @@ class Cookie
      * @param string $key 指定的参数
      * @param mixed $value 设置的值
      * @param integer $expire 过期时间,默认为0,表示随会话时间结束
+     * @param string|null $sameSite 防跨站请求伪造策略,默认为空表示使用全局设置
      * @param boolean|null $httponly 是否仅可通过 HTTP 协议访问,默认为空表示使用全局设置
-     * @param string|null $samesite 防跨站请求伪造策略,默认为空表示使用全局设置
      */
-    public static function set(string $key, $value, int $expire = 0, ?bool $httponly = null, ?string $samesite = null)
+    public static function set(string $key, $value, int $expire = 0, ?string $sameSite = null, ?bool $httponly = null)
     {
         $key = self::$prefix . $key;
         $_COOKIE[$key] = $value;
@@ -202,7 +202,7 @@ class Cookie
             self::$domain,
             self::$secure,
             $httponly ?? self::$httponly,
-            $samesite ?? self::$samesite
+            $sameSite === null ? self::$sameSite : self::normalizeSamesite($sameSite)
         );
     }
 
@@ -210,10 +210,10 @@ class Cookie
      * 删除指定的COOKIE值
      *
      * @param string $key 指定的参数
+     * @param string|null $sameSite 防跨站请求伪造策略,默认为空表示使用全局设置
      * @param boolean|null $httponly 是否仅可通过 HTTP 协议访问,默认为空表示使用全局设置
-     * @param string|null $samesite 防跨站请求伪造策略,默认为空表示使用全局设置
      */
-    public static function delete(string $key, ?bool $httponly = null, ?string $samesite = null)
+    public static function delete(string $key, ?string $sameSite = null, ?bool $httponly = null)
     {
         $key = self::$prefix . $key;
         if (!isset($_COOKIE[$key])) {
@@ -228,7 +228,7 @@ class Cookie
             self::$domain,
             self::$secure,
             $httponly ?? self::$httponly,
-            $samesite ?? self::$samesite
+            $sameSite === null ? self::$sameSite : self::normalizeSamesite($sameSite)
         );
         unset($_COOKIE[$key]);
     }

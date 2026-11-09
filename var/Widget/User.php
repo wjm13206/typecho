@@ -100,8 +100,13 @@ class User extends Users
                     ->where('uid = ?', intval($cookieUid))
                     ->limit(1));
 
+                // the cookie is client-controlled: only accept the $T$ format commitLogin() issues,
+                // so a forged bcrypt / phpass cost cannot make hashValidate() burn CPU
                 $cookieAuthCode = Cookie::get('__typecho_authCode');
-                if ($user && Common::hashValidate($user['authCode'], $cookieAuthCode)) {
+                if (
+                    $user && null !== $cookieAuthCode && '$T$' == substr($cookieAuthCode, 0, 3)
+                    && Common::hashValidate($user['authCode'], $cookieAuthCode)
+                ) {
                     $this->currentUser = $user;
                     return ($this->hasLogin = true);
                 }
@@ -186,24 +191,18 @@ class User extends Users
         $hashValidate = self::pluginHandle()->trigger($hashPluggable)->call('hashValidate', $password, $user['password']);
         if (!$hashPluggable) {
             $hashValidate = Common::hashValidate($password, $user['password']);
+
+            // transparently upgrade phpass / legacy hashes to the current default algorithm
+            if ($hashValidate && Common::passwordNeedsRehash($user['password'])) {
+                $user['password'] = Common::hashPassword($password);
+                $this->db->query($this->db
+                    ->update('table.users')
+                    ->rows(['password' => $user['password']])
+                    ->where('uid = ?', $user['uid']));
+            }
         }
 
         if ($hashValidate) {
-            // 老弱哈希(MD5/$T$)登录成功后自动升级为 bcrypt, 缩小拖库影响
-            if (
-                !$hashPluggable && isset($user['password'])
-                && (0 !== strpos((string)$user['password'], '$2y$') && 0 !== strpos((string)$user['password'], '$argon2'))
-            ) {
-                try {
-                    $this->db->query($this->db
-                        ->update('table.users')
-                        ->rows(['password' => Common::hashPassword($password)])
-                        ->where('uid = ?', $user['uid']));
-                } catch (\Exception $e) {
-                    // 忽略升级失败, 不影响登录
-                }
-            }
-
             if (!$temporarily) {
                 $this->commitLogin($user, $expire);
             }
@@ -228,12 +227,11 @@ class User extends Users
      */
     public function commitLogin(&$user, int $expire = 0)
     {
-        $authCode = function_exists('openssl_random_pseudo_bytes') ?
-            bin2hex(openssl_random_pseudo_bytes(16)) : sha1(Common::randString(20));
+        $authCode = bin2hex(random_bytes(16));
         $user['authCode'] = $authCode;
 
-        Cookie::set('__typecho_uid', $user['uid'], $expire, true);
-        Cookie::set('__typecho_authCode', Common::hash($authCode), $expire, true);
+        Cookie::set('__typecho_uid', $user['uid'], $expire, null, true);
+        Cookie::set('__typecho_authCode', Common::hash($authCode), $expire, null, true);
 
         //更新最后登录时间以及验证码
         $this->db->query($this->db
